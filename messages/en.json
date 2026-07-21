@@ -106,6 +106,37 @@
     "privacy": "Privacy Policy",
     "copyright": "Itoguchi"
   },
+  "About": {
+    "title": "About Itoguchi",
+    "intro": "Itoguchi is a guide to the traditional crafts of Minami-Shinshu (Iida and Shimo-Ina). We gather information scattered across makers' sites and social media into a canonical page for each craft, plus a shared calendar of experiences and events.",
+    "purposeTitle": "Connecting the dots.",
+    "purposeBody": "We thread together the handcrafts scattered across Minami-Shinshu, guiding you from simply learning about them to actually experiencing and visiting them — all in one place. We run no booking system; applications and inquiries are handed over to each group.",
+    "guideTitle": "Your guide to hands-on craft",
+    "guideBody": "We clearly separate experiences you can join year-round from events with fixed dates, and lay out when, where, how much, and how to apply.",
+    "sayoTitle": "Relationship with Sayo's Journal",
+    "sayoBody": "This site extends the reporting-and-structuring model developed at Sayo's Journal — which covers the region's \"now\" — into a stock-type portal focused on crafts. Feature articles and craft pages link to each other.",
+    "operatorTitle": "Who runs this",
+    "operatorBody": "Itoguchi is run by volunteers who hope to carry the handcrafts of Minami-Shinshu to the next generation. Content is updated as we confirm details with each group and workshop. (Operator details are being prepared.)",
+    "contactTitle": "Contact",
+    "contactBody": "Applications for experiences and events are directed to each group's contact. A contact point for this site is being prepared. (To be confirmed.)"
+  },
+  "Privacy": {
+    "title": "Privacy Policy",
+    "intro": "This policy describes how Itoguchi (\"this site\") handles personal information and data.",
+    "collectTitle": "Information we collect",
+    "collectBody": "This site has no contact form or account registration, and does not actively collect personal information such as names or email addresses. General server access logs (IP address, browser information, etc.) may be recorded as part of normal operation.",
+    "cookieTitle": "Use of cookies",
+    "cookieBody": "We use a cookie to remember your display-language choice (Japanese / English). We do not use cookies for tracking or advertising.",
+    "analyticsTitle": "Analytics",
+    "analyticsBody": "We currently use no analytics tools. If we introduce them in the future, we will describe their use in this policy.",
+    "externalTitle": "Links to external services",
+    "externalBody": "We provide links to Google Maps for showing locations. Please review each service's own privacy policy regarding how they handle information.",
+    "contactTitle": "Contact",
+    "contactBody": "A contact point for questions about this policy is being prepared. (To be confirmed.)",
+    "updatesTitle": "Changes to this policy",
+    "updatesBody": "We may revise this policy as needed. We will announce significant changes on this page.",
+    "note": "This policy is a provisional version for the MVP stage."
+  },
   "Fallback": {
     "japaneseOnly": "This page is available in Japanese only."
   },

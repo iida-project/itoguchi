@@ -13,7 +13,7 @@
 | 07 | [体験一覧](07-experiences.md) | 02, 04 | 完了 |
 | 08 | [イベントカレンダー・イベント詳細](08-events-calendar.md) | 02, 04 | 完了 |
 | 09 | [記事一覧・記事詳細](09-articles.md) | 02, 04 | 完了 |
-| 10 | [About・プライバシーポリシー](10-static-pages.md) | 02 | 未着手 |
+| 10 | [About・プライバシーポリシー](10-static-pages.md) | 02 | 完了 |
 | 11 | [管理パネル: 認証・基盤](11-admin-foundation.md) | 03 | 未着手 |
 | 12 | [管理パネル: CRUD](12-admin-crud.md) | 11 | 未着手 |
 | 13 | [AI 英訳パイプライン](13-translation-pipeline.md) | 12 | 未着手 |
