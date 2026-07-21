@@ -19,7 +19,26 @@
     "backToList": "一覧へ戻る"
   },
   "Events": {
-    "statusEnded": "終了"
+    "statusEnded": "終了",
+    "listTitle": "イベント",
+    "lead": "日程の決まったワークショップ・イベント。",
+    "viewList": "リスト",
+    "viewCalendar": "カレンダー",
+    "today": "今日",
+    "filterCraft": "工芸",
+    "all": "すべて",
+    "pastEvents": "過去のイベント",
+    "emptyUpcoming": "開催予定のイベントはまだありません。",
+    "alsoExperiences": "随時受付の体験",
+    "noEventsOnDay": "この日の開催予定はありません。",
+    "dateLabel": "日時",
+    "venueLabel": "会場",
+    "feeLabel": "料金",
+    "capacityLabel": "定員・対象",
+    "organizerLabel": "主催",
+    "relatedCraft": "関連工芸",
+    "applyLabel": "申込方法",
+    "applyButton": "申し込む（外部サイト）"
   },
   "Experiences": {
     "availabilityAnytime": "随時受付",

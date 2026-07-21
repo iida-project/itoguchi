@@ -19,7 +19,26 @@
     "backToList": "Back to list"
   },
   "Events": {
-    "statusEnded": "Ended"
+    "statusEnded": "Ended",
+    "listTitle": "Events",
+    "lead": "Scheduled workshops and events.",
+    "viewList": "List",
+    "viewCalendar": "Calendar",
+    "today": "Today",
+    "filterCraft": "Craft",
+    "all": "All",
+    "pastEvents": "Past events",
+    "emptyUpcoming": "No upcoming events yet.",
+    "alsoExperiences": "Year-round experiences",
+    "noEventsOnDay": "No events scheduled on this day.",
+    "dateLabel": "Date",
+    "venueLabel": "Venue",
+    "feeLabel": "Fee",
+    "capacityLabel": "Capacity",
+    "organizerLabel": "Organizer",
+    "relatedCraft": "Related craft",
+    "applyLabel": "How to apply",
+    "applyButton": "Apply (external site)"
   },
   "Experiences": {
     "availabilityAnytime": "Year-round",
