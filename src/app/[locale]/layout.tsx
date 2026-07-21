@@ -4,6 +4,8 @@ import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { routing } from '@/i18n/routing';
 import { fontVariables } from '@/app/fonts';
+import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
 import '../globals.css';
 
 export const metadata: Metadata = {
@@ -34,8 +36,12 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <html lang={locale} className={fontVariables}>
-      <body className="antialiased">
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+      <body className="flex min-h-screen flex-col antialiased">
+        <NextIntlClientProvider>
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </NextIntlClientProvider>
       </body>
     </html>
   );

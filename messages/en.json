@@ -16,6 +16,15 @@
     "title": "Itoguchi",
     "tagline": "Your guide to the traditional crafts of southern Nagano"
   },
+  "Footer": {
+    "tagline": "Meet the crafts of Minami-Shinshu.",
+    "about": "About",
+    "privacy": "Privacy Policy",
+    "copyright": "Itoguchi"
+  },
+  "Fallback": {
+    "japaneseOnly": "This page is available in Japanese only."
+  },
   "NotFound": {
     "title": "Page not found",
     "description": "The page you are looking for doesn’t exist or may have moved.",
