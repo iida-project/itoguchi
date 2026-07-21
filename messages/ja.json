@@ -12,9 +12,27 @@
     "en": "EN",
     "label": "言語を切り替える"
   },
+  "Common": {
+    "seeAll": "すべて見る",
+    "provisional": "※確認中"
+  },
+  "Events": {
+    "statusEnded": "終了"
+  },
   "Home": {
-    "title": "いとぐち",
-    "tagline": "南信州の伝統工芸への案内係"
+    "heroTitle": "南信州の手しごとに、会いに行く。",
+    "heroLead": "飯田・下伊那に受け継がれる工芸を、知って、出会って、体験する。",
+    "ctaExperiences": "体験をさがす",
+    "ctaCrafts": "工芸を知る",
+    "upcomingTitle": "直近の体験・イベント",
+    "noUpcoming": "現在、日付の決まったイベントはありません。随時受付の体験からご覧ください。",
+    "craftsTitle": "工芸を知る",
+    "purposeTitle": "点を、線に。",
+    "purposeLead": "南信州に点在する手しごとを、一本の糸でつなぎます。",
+    "purpose1": "工芸を知る",
+    "purpose2": "担い手に出会う",
+    "purpose3": "体験しに行く",
+    "articlesTitle": "最新の記事"
   },
   "Footer": {
     "tagline": "南信州の手しごとに、会いに行く。",

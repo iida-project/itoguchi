@@ -1,23 +1,11 @@
 import type { ButtonHTMLAttributes } from 'react';
-import { cn } from '@/lib/cn';
-
-type Variant = 'primary' | 'secondary';
+import { buttonClasses, type ButtonVariant } from './buttonStyles';
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: Variant;
+  variant?: ButtonVariant;
 };
 
-// ピル型・高さ 48px（タップターゲット 44px 以上）。DESIGN.md §5.1
-const base =
-  'inline-flex min-h-12 items-center justify-center rounded-full px-6 text-body font-medium leading-none transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50';
-
-const variants: Record<Variant, string> = {
-  // Primary: 藤紫背景 + 白文字、hover で深藤
-  primary: 'bg-primary-600 text-white hover:bg-primary-700',
-  // Secondary: 白背景 + 墨文字 + border
-  secondary: 'border border-border bg-surface text-foreground hover:bg-primary-100',
-};
-
+// 見た目は buttonStyles.ts が単一情報源。ナビゲーション用途は LinkButton を使う。
 export function Button({
   variant = 'primary',
   className,
@@ -27,7 +15,7 @@ export function Button({
   return (
     <button
       type={type}
-      className={cn(base, variants[variant], className)}
+      className={buttonClasses(variant, className)}
       {...props}
     />
   );

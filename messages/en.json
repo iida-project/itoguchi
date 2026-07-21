@@ -12,9 +12,27 @@
     "en": "EN",
     "label": "Switch language"
   },
+  "Common": {
+    "seeAll": "See all",
+    "provisional": "Details to be confirmed"
+  },
+  "Events": {
+    "statusEnded": "Ended"
+  },
   "Home": {
-    "title": "Itoguchi",
-    "tagline": "Your guide to the traditional crafts of southern Nagano"
+    "heroTitle": "Meet the crafts of Minami-Shinshu.",
+    "heroLead": "Discover, meet, and experience the crafts handed down in Iida and Shimo-Ina.",
+    "ctaExperiences": "Find experiences",
+    "ctaCrafts": "Explore crafts",
+    "upcomingTitle": "Upcoming experiences & events",
+    "noUpcoming": "No dated events right now. Browse experiences available year-round instead.",
+    "craftsTitle": "Explore crafts",
+    "purposeTitle": "Connecting the dots.",
+    "purposeLead": "We thread together the handcrafts scattered across Minami-Shinshu.",
+    "purpose1": "Discover a craft",
+    "purpose2": "Meet the makers",
+    "purpose3": "Go and experience it",
+    "articlesTitle": "Latest journal"
   },
   "Footer": {
     "tagline": "Meet the crafts of Minami-Shinshu.",

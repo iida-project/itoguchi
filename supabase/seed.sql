@@ -5,6 +5,7 @@
 -- 本番の公開制御（noindex/robots/status 切替）はデプロイ側の別チケット。
 
 -- 冪等化のため既存のシードを一旦削除（slug ベース）
+delete from public.articles where slug in ('fuji-ito-monogatari');
 delete from public.crafts where slug in ('toyama-fuji-ito', 'ajima-gasa');
 delete from public.groups where slug in ('toyama-fuji-ito-kai');
 
@@ -98,3 +99,32 @@ from c
 union all
 select id, 'en', 'Ajima-gasa (Japanese umbrella)', 'Traditional umbrellas of Ajima, Takagi', 'Traditional Japanese umbrella-making handed down in Ajima. (Provisional text pending confirmation.)', true, true
 from c;
+
+-- =====================================================================
+-- 記事（取材記事・published）→ craft #1 に紐づく。ホームの「最新記事」表示確認用（docs/05）
+-- 写真なし（§10: 許可前は写真を使わない）・is_provisional=true
+-- =====================================================================
+with cr as (
+  select id from public.crafts where slug = 'toyama-fuji-ito'
+),
+a as (
+  insert into public.articles (craft_id, slug, published_at, thumbnail, is_provisional)
+  select cr.id, 'fuji-ito-monogatari', timestamptz '2026-07-10 09:00:00+09', null, true
+  from cr
+  returning id
+)
+insert into public.article_translations
+  (article_id, locale, title, excerpt, content, thumbnail_alt, is_published, is_provisional)
+select id, 'ja',
+  '遠山郷、藤の糸をたどって',
+  '山藤の蔓から糸が生まれるまで。遠山ふじ糸の担い手を訪ねました。※確認中',
+  '（※内容は確認中の仮テキストです）遠山郷に受け継がれる藤糸づくりの現場を訪ねた取材記事。',
+  null, true, true
+from a
+union all
+select id, 'en',
+  'Following the wisteria thread in Tōyama',
+  'How thread is born from mountain wisteria vines: a visit to the makers of Tōyama fuji-ito. (Provisional)',
+  '(Provisional text pending confirmation) A visit to the workshop where Tōyama fuji-ito thread is made.',
+  null, true, true
+from a;
