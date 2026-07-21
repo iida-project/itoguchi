@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **いとぐち（Itoguchi）** — 南信州（飯田・下伊那）の伝統工芸ポータル。工芸単位の「正本ページ」と体験・イベントの横断カレンダーで「体験したい人への案内係」を務めるサイト。日英 2 言語。Sayo's Journal の技術構成・設計資産を流用した横展開第 1 号。
 
-現状は create-next-app の雛形のみで、実装はこれから。**仕様の正本は `REQUIREMENTS.md`（要件・データモデル・画面構成）と `DESIGN.md`（デザインシステム）**。実装前に必ず両方を参照すること。
+基盤チケット（docs/01〜04）は実装済み: i18n ルーティング / デザイントークン・共通 UI / Supabase スキーマ・RLS / データアクセス層。最新の進捗は `docs/00-index.md` の状態欄を参照。**仕様の正本は `REQUIREMENTS.md`（要件・データモデル・画面構成）と `DESIGN.md`（デザインシステム）**。実装前に必ず両方を参照すること。
 
 ## チケット管理（docs/）
 
@@ -32,8 +32,37 @@ npm run lint    # ESLint
 
 - Next.js 15 App Router / React 19 / TypeScript strict / パスエイリアス `@/*` → `src/*`
 - **Tailwind CSS は v3.4.17 に意図的にピン留め**（v4 ではない）。`tailwind.config.ts` + PostCSS 方式。v4 の CSS-first 記法（`@theme` 等）は使わない
-- Supabase（PostgreSQL + Storage、新規プロジェクト・sayo-blog とは分離）、Gemini（英訳下訳）、Tiptap（管理パネル）、Vercel ホスティング — いずれも導入予定（REQUIREMENTS.md §9）
-- `.mcp.json` は認証情報を含むため gitignore 済み。コミットしない
+- **i18n**: next-intl v4 導入済み。**Supabase**: 専用プロジェクト（ref `cknlipxwpxrcbexrbjbd` / ap-northeast-1、sayo-blog とは分離）にスキーマ・RLS・Storage 構築済み。`@supabase/supabase-js` + `server-only` 導入済み
+- Gemini（英訳下訳）、Tiptap（管理パネル）、Vercel ホスティングは未導入（REQUIREMENTS.md §9、docs/11・13・16 で対応）
+- `.mcp.json` と `.env.local` は認証情報を含むため gitignore 済み。コミットしない（公開クライアント用の env は `.env.example` に記載）
+
+## 実装済みの基盤（再利用する既存資産）
+
+新しいページ・機能はこれらを**再作成せず再利用**する。詳細は各チケット（docs/01〜04）の「メモ」節。
+
+### i18n（docs/01）
+- ルーティング定義: `src/i18n/routing.ts`（`locales = ['ja','en']`、`Locale` 型もここから import）。locale 追加はこの 1 箇所
+- locale 対応ナビ: `src/i18n/navigation.ts` の `Link` / `usePathname` / `useRouter`（通常の `next/link` ではなくこちらを使う）
+- リクエスト設定 `src/i18n/request.ts` / ミドルウェア `src/middleware.ts` / UI 文言 `messages/{ja,en}.json`（namespace 単位で追記）
+- フォント: `src/app/fonts.ts`（4 フォント self-host）。locale 別フォント/行間は `globals.css` の `html[lang]` 切替で解決済み
+- ルート構成: `src/app/[locale]/`（`layout.tsx` が `<html>` を持つルート。`[locale]/[...rest]` はロケール付き 404 用キャッチオール）
+
+### デザイントークン・共通 UI（docs/02）
+- トークンの単一情報源は `src/app/globals.css` の `:root`（`--color-*` / `--radius-*` / `--shadow-*` / `--leading-*`）。`tailwind.config.ts` がそれを Tailwind クラスに接続（`bg-primary-600` `text-muted` `rounded-lg` `shadow-card` `text-h2` 等）
+- UI コンポーネント `src/components/ui/`: `Button` / `Badge` / `Card`＋`CardMedia`（写真無し時は淡藤プレースホルダ）/ `ThreadDivider`（★糸と結び目）/ `Reveal`（fade-in-up）
+- レイアウト `src/components/layout/`: `Header` / `Footer` / `LanguageSwitcher` / `JapaneseOnlyBanner`（EN 未訳バナー、表示条件のワイヤリングは各ページ側）
+- ユーティリティ: `src/lib/cn.ts`（classNames 結合）/ `src/lib/date.ts`（`formatDate(date, locale)` / `todayISO()`）
+
+### DB（docs/03）
+- マイグレーション `supabase/migrations/`（正本・再現可能。適用は Supabase MCP `apply_migration`）/ dev シード `supabase/seed.sql` / 設定 `supabase/config.toml`
+- **型 `src/types/database.types.ts`**（MCP `generate_typescript_types` 生成）。**スキーマ変更時は必ず再生成**する
+- RLS は「匿名=published のみ SELECT / authenticated=全操作」。ended はクエリ側導出（cron なし）
+
+### データアクセス層（docs/04）
+- **公開ページのデータ取得は `src/lib/data/` の関数だけを使う**（Supabase を直接叩かない）: `getCrafts` / `getCraftBySlug` / `getExperiences` / `getEvents` / `getEventBySlug` / `getArticles` / `getArticleBySlug` / `getHomeData`
+- EN→JA フォールバックは層内で解決済み。返り値は整形済み型（`src/lib/data/types.ts`）で `isFallback`（未訳→ja）/ `isProvisional`（※確認中）を持つ
+- クライアントは `src/lib/supabase/server.ts`（`server-only`・cookie 不使用で ISR 維持）。by-slug の該当なしは `null` 返し → **ページ側で `notFound()`**
+- 注意: Next の私設フォルダ規約により `_` / `__` 始まりのフォルダはルーティング対象外
 
 ## Next.js 15 App Router ベストプラクティス
 
