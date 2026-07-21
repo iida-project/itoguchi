@@ -32,3 +32,14 @@ export function formatDate(date: Date | string, locale: Locale): string {
     FORMAT_OPTIONS[locale],
   ).format(value);
 }
+
+/**
+ * 日本時間の「今日」を 'YYYY-MM-DD' で返す。
+ * events の `date` 型（タイムゾーンなし）と文字列比較して終了判定に使う（§7）。
+ */
+export function todayISO(): string {
+  // en-CA は YYYY-MM-DD 形式
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo' }).format(
+    new Date(),
+  );
+}
