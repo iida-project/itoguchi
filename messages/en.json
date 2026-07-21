@@ -14,10 +14,40 @@
   },
   "Common": {
     "seeAll": "See all",
-    "provisional": "Details to be confirmed"
+    "provisional": "Details to be confirmed",
+    "openInMaps": "Open in Google Maps",
+    "backToList": "Back to list"
   },
   "Events": {
     "statusEnded": "Ended"
+  },
+  "Experiences": {
+    "availabilityAnytime": "Year-round",
+    "availabilitySeasonal": "Seasonal",
+    "availabilityRequest": "By reservation",
+    "price": "Price",
+    "duration": "Duration",
+    "season": "Season",
+    "apply": "How to apply"
+  },
+  "Crafts": {
+    "listTitle": "Crafts",
+    "listLead": "Handcrafts handed down across Minami-Shinshu.",
+    "empty": "There are no crafts to show right now.",
+    "toc": "Contents",
+    "overview": "Overview",
+    "history": "History & story",
+    "steps": "Process",
+    "makers": "The makers",
+    "experience": "Experience it",
+    "experienceLead": "How you can actually experience this craft.",
+    "upcomingEvents": "Scheduled events",
+    "spots": "See & buy",
+    "articles": "Related journal",
+    "access": "Access & contact",
+    "addressLabel": "Address",
+    "contactLabel": "Contact",
+    "snsLabel": "Links"
   },
   "Home": {
     "heroTitle": "Meet the crafts of Minami-Shinshu.",

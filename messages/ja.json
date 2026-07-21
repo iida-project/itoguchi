@@ -14,10 +14,40 @@
   },
   "Common": {
     "seeAll": "すべて見る",
-    "provisional": "※確認中"
+    "provisional": "※確認中",
+    "openInMaps": "Google マップで開く",
+    "backToList": "一覧へ戻る"
   },
   "Events": {
     "statusEnded": "終了"
+  },
+  "Experiences": {
+    "availabilityAnytime": "随時受付",
+    "availabilitySeasonal": "季節限定",
+    "availabilityRequest": "要予約",
+    "price": "料金",
+    "duration": "所要",
+    "season": "時期",
+    "apply": "申込"
+  },
+  "Crafts": {
+    "listTitle": "工芸一覧",
+    "listLead": "南信州に受け継がれる手しごと。",
+    "empty": "現在ご紹介できる工芸はありません。",
+    "toc": "目次",
+    "overview": "概要",
+    "history": "歴史・物語",
+    "steps": "工程",
+    "makers": "担い手",
+    "experience": "体験する",
+    "experienceLead": "この工芸を「どうすれば体験できるか」の案内です。",
+    "upcomingEvents": "日程の決まったイベント",
+    "spots": "見る・買う",
+    "articles": "関連記事",
+    "access": "アクセス・問い合わせ",
+    "addressLabel": "住所",
+    "contactLabel": "問い合わせ",
+    "snsLabel": "リンク"
   },
   "Home": {
     "heroTitle": "南信州の手しごとに、会いに行く。",
