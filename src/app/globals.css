@@ -94,6 +94,92 @@ html[lang='en'] {
   }
 }
 
+/*
+ * 記事本文（docs/09）。sanitize 済み HTML を読み物タイポで描画（DESIGN §6）。
+ * 花装飾は使わず、hr を「糸＋結び目」の区切りに置換する。
+ */
+.article-content {
+  font-size: 18px;
+  line-height: var(--leading-body-lg);
+}
+.article-content > :first-child {
+  margin-top: 0;
+}
+.article-content p {
+  margin: 1.1em 0;
+}
+.article-content h2,
+.article-content h3,
+.article-content h4 {
+  font-family: var(--font-display);
+  margin: 1.8em 0 0.5em;
+}
+.article-content h2 {
+  font-size: 28px;
+  line-height: 1.45;
+}
+.article-content h3 {
+  font-size: 20px;
+  line-height: 1.5;
+}
+.article-content ul,
+.article-content ol {
+  margin: 1.1em 0;
+  padding-left: 1.4em;
+}
+.article-content ul {
+  list-style: disc;
+}
+.article-content ol {
+  list-style: decimal;
+}
+.article-content li {
+  margin: 0.35em 0;
+}
+.article-content a {
+  color: var(--color-primary-700);
+  text-decoration: underline;
+}
+.article-content strong {
+  font-weight: 600;
+}
+.article-content blockquote {
+  margin: 1.3em 0;
+  padding-left: 1em;
+  border-left: 3px solid var(--color-primary-400);
+  color: var(--color-text-muted);
+}
+.article-content img {
+  margin: 1.3em 0;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+}
+.article-content figcaption {
+  margin-top: 0.4em;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+/* hr = 糸＋結び目の区切り（ThreadDivider と同モチーフ） */
+.article-content hr {
+  position: relative;
+  border: 0;
+  height: 1px;
+  margin: 2.4em 0;
+  background: var(--color-primary-400);
+}
+.article-content hr::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-600);
+  transform: translate(-50%, -50%);
+}
+
 /* モーション削減（§7）: アニメーション・トランジションを全無効化 */
 @media (prefers-reduced-motion: reduce) {
   *,

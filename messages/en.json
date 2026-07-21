@@ -57,6 +57,15 @@
     "empty": "No experiences match these filters.",
     "browseCrafts": "Browse crafts"
   },
+  "Articles": {
+    "listTitle": "Journal",
+    "lead": "Field notes visiting the handcrafts of Minami-Shinshu.",
+    "empty": "There are no articles to show right now.",
+    "filterCraft": "Craft",
+    "all": "All",
+    "relatedCraft": "Related craft",
+    "browseCrafts": "Browse crafts"
+  },
   "Crafts": {
     "listTitle": "Crafts",
     "listLead": "Handcrafts handed down across Minami-Shinshu.",

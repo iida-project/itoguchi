@@ -193,14 +193,14 @@ insert into public.article_translations
 select id, 'ja',
   '遠山郷、藤の糸をたどって',
   '山藤の蔓から糸が生まれるまで。遠山ふじ糸の担い手を訪ねました。※確認中',
-  '（※内容は確認中の仮テキストです）遠山郷に受け継がれる藤糸づくりの現場を訪ねた取材記事。',
+  '<p>山藤の蔓から糸を績（う）む——<strong>遠山郷</strong>に受け継がれてきた手しごとの現場を訪ねました。※本記事は確認中の仮テキストです。</p><h3>蔓から糸へ</h3><p>採取した蔓を煮て柔らかくし、内側の繊維をていねいに取り出します。細く裂いた繊維を、端どうしをつないで一本の長い糸にしていきます。</p><ul><li>採取の時期と太さを見極める</li><li>繊維を績んでつなぐ</li><li>撚りをかけて仕上げる</li></ul><hr><p><em>※料金・日程などの詳細は確認中です。</em></p>',
   null, true, true
 from a
 union all
 select id, 'en',
   'Following the wisteria thread in Tōyama',
   'How thread is born from mountain wisteria vines: a visit to the makers of Tōyama fuji-ito. (Provisional)',
-  '(Provisional text pending confirmation) A visit to the workshop where Tōyama fuji-ito thread is made.',
+  '<p>Spinning thread from the vines of mountain wisteria — we visited the makers keeping this <strong>Tōyama</strong> handcraft alive. (Provisional text pending confirmation.)</p><h3>From vine to thread</h3><p>The gathered vines are simmered until soft, and the inner fibers are carefully drawn out, split thin, and joined end to end into one long strand.</p><ul><li>Judge the season and thickness when harvesting</li><li>Split and join the fibers</li><li>Add twist to finish the thread</li></ul><hr><p><em>Details such as fees and dates are being confirmed.</em></p>',
   null, true, true
 from a;
 
@@ -341,13 +341,13 @@ insert into public.article_translations
 select id, 'ja',
   '阿島の傘、竹と紙のあいだで',
   '一本の傘ができるまで。阿島傘の作り手を訪ねました。※確認中',
-  '（※内容は確認中の仮テキストです）竹と和紙から和傘が生まれる工程を追った取材記事。',
+  '<p>竹の骨に和紙を貼り、油を引いて仕上げる——<strong>阿島</strong>に伝わる和傘づくりの作り手を訪ねました。※本記事は確認中の仮テキストです。</p><h3>竹と紙のあいだで</h3><p>竹をていねいに割って細い骨をつくり、中心の轆轤（ろくろ）に差し込んで骨組みを組みます。和紙を貼り、乾かし、油を引いて仕上げます。</p><ul><li>竹を割って骨を削り出す</li><li>骨を組み、和紙を貼る</li><li>油を引いて天日で仕上げる</li></ul><hr><p><em>※見学・体験の詳細は確認中です。</em></p>',
   null, true, true
 from a
 union all
 select id, 'en',
   'Ajima umbrellas, between bamboo and paper',
   'How a single umbrella comes to be: a visit to the makers of Ajima-gasa. (Provisional)',
-  '(Provisional text pending confirmation) A report following how a Japanese umbrella is born from bamboo and washi.',
+  '<p>Washi paper over a bamboo frame, finished with oil — we visited the makers of the traditional umbrellas of <strong>Ajima</strong>. (Provisional text pending confirmation.)</p><h3>Between bamboo and paper</h3><p>Bamboo is split into slender ribs and fitted into a central hub to form the frame. Washi paper is pasted on, dried, and finished with a coat of oil.</p><ul><li>Split bamboo and shape the ribs</li><li>Assemble the frame and paste the paper</li><li>Oil and dry in the sun to finish</li></ul><hr><p><em>Details of tours and hands-on visits are being confirmed.</em></p>',
   null, true, true
 from a;

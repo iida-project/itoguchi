@@ -57,6 +57,15 @@
     "empty": "条件に合う体験が見つかりませんでした。",
     "browseCrafts": "工芸から探す"
   },
+  "Articles": {
+    "listTitle": "記事",
+    "lead": "南信州の手しごとを訪ねた取材記事。",
+    "empty": "現在ご紹介できる記事はありません。",
+    "filterCraft": "工芸",
+    "all": "すべて",
+    "relatedCraft": "関連工芸",
+    "browseCrafts": "工芸から探す"
+  },
   "Crafts": {
     "listTitle": "工芸一覧",
     "listLead": "南信州に受け継がれる手しごと。",
