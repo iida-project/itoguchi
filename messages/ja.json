@@ -28,7 +28,15 @@
     "price": "料金",
     "duration": "所要",
     "season": "時期",
-    "apply": "申込"
+    "apply": "申込",
+    "title": "体験をさがす",
+    "lead": "南信州の手しごとを、随時受け付けている体験から。",
+    "filterCraft": "工芸",
+    "filterRegion": "地域",
+    "filterAvailability": "受付形態",
+    "all": "すべて",
+    "empty": "条件に合う体験が見つかりませんでした。",
+    "browseCrafts": "工芸から探す"
   },
   "Crafts": {
     "listTitle": "工芸一覧",

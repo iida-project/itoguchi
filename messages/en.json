@@ -28,7 +28,15 @@
     "price": "Price",
     "duration": "Duration",
     "season": "Season",
-    "apply": "How to apply"
+    "apply": "How to apply",
+    "title": "Find an experience",
+    "lead": "Meet the crafts of Minami-Shinshu through experiences you can join.",
+    "filterCraft": "Craft",
+    "filterRegion": "Region",
+    "filterAvailability": "Availability",
+    "all": "All",
+    "empty": "No experiences match these filters.",
+    "browseCrafts": "Browse crafts"
   },
   "Crafts": {
     "listTitle": "Crafts",
