@@ -1,0 +1,24 @@
+{
+  "Nav": {
+    "home": "Home",
+    "crafts": "Crafts",
+    "experiences": "Experiences",
+    "events": "Events",
+    "articles": "Journal",
+    "about": "About"
+  },
+  "LanguageSwitcher": {
+    "ja": "日本語",
+    "en": "EN",
+    "label": "Switch language"
+  },
+  "Home": {
+    "title": "Itoguchi",
+    "tagline": "Your guide to the traditional crafts of southern Nagano"
+  },
+  "NotFound": {
+    "title": "Page not found",
+    "description": "The page you are looking for doesn’t exist or may have moved.",
+    "backHome": "Back to home"
+  }
+}

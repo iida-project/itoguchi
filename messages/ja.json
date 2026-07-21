@@ -1,0 +1,24 @@
+{
+  "Nav": {
+    "home": "ホーム",
+    "crafts": "工芸",
+    "experiences": "体験",
+    "events": "イベント",
+    "articles": "記事",
+    "about": "いとぐちについて"
+  },
+  "LanguageSwitcher": {
+    "ja": "日本語",
+    "en": "EN",
+    "label": "言語を切り替える"
+  },
+  "Home": {
+    "title": "いとぐち",
+    "tagline": "南信州の伝統工芸への案内係"
+  },
+  "NotFound": {
+    "title": "ページが見つかりません",
+    "description": "お探しのページは存在しないか、移動した可能性があります。",
+    "backHome": "ホームへ戻る"
+  }
+}
