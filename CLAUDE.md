@@ -8,7 +8,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 基盤チケット（docs/01〜04）と公開ページ（docs/05〜10: ホーム / 工芸一覧・詳細 / 体験一覧 / イベントカレンダー・詳細 / 記事一覧・詳細 / About・Privacy）は実装済み。未着手は管理パネル・翻訳（docs/11〜13）、SEO/AIO（docs/14）、シード本番化（docs/15）、デプロイ（docs/16）、**デザインリフレッシュ（docs/17〜20）**。最新の進捗は `docs/00-index.md` の状態欄を参照。**仕様の正本は `REQUIREMENTS.md`（要件・データモデル・画面構成）と `DESIGN.md`（デザインシステム）**。実装前に必ず両方を参照すること。
 
-> **着手順の注意**: docs/17〜20（デザインリフレッシュ v0.2）は docs/14・15 より**先に**着手する。ページ構成が変わると JSON-LD の埋め込み位置とコンテンツ流し込みをやり直すことになるため。
+### 着手順（2026-07-23 決定）
+
+```
+17 → 18 → 19 → 20 → 11 → 12 → 13 → 14 → 15 → 16
+```
+
+**次に着手するのは docs/17（デザインリフレッシュ: 基盤）。** 管理パネル（11）より先にする理由:
+
+- **17 のタイプスケール変更は破壊的**（`display` 40→74px / `h2` 28→40px / `max-w-content` 1120→1280px）。17 より前に作った画面は作り直しになる。管理パネルはフォーム・テーブルで 10 画面以上あるため、変わると分かっているスケールの上に積まない
+- **18 は 12 より先**。18 で増える 3 カラム（`crafts.name_latin` / `craft_translations.about_heading` / `story_heading`）は管理パネルの入力欄に必要。後回しにすると 12 のフォームを二度作る
+- **17〜20 は 14・15 より先**。ページ構成が変わると JSON-LD の埋め込み位置とコンテンツ流し込みをやり直すことになる
+
+17 と 18 は互いに依存しないので順不同・並行でよい（17 = トークンと共通 UI、18 = スキーマとデータ層）。
+
+> **⚠️ 17 の途中で止めないこと。** 17 を終えた時点ではトークンとタイプスケールだけが差し替わり、ページ側が追いつかないため**サイトの見た目は一度崩れる**（17 の完了条件にも「ページ側のレイアウト崩れを完了条件にしない」と明記してある）。**19・20 まで通して初めて整う。**
+
+> 上記の前提: いま管理パネルが無くて詰まる作業は無い（コンテンツは全件 `is_provisional` で掲載交渉が未了、docs/15 の投入は `seed.sql` + Supabase MCP で可能）。**第三者に近く入力してもらう予定ができたら、11・12 を前倒しする判断に変わる。**
 
 ## チケット管理（docs/）
 
@@ -51,7 +67,10 @@ npm run lint    # ESLint
 - ルート構成: `src/app/[locale]/`（`layout.tsx` が `<html>` を持つルート。`[locale]/[...rest]` はロケール付き 404 用キャッチオール）
 
 ### デザイントークン・共通 UI（docs/02）
-- トークンの単一情報源は `src/app/globals.css` の `:root`（`--color-*` / `--radius-*` / `--shadow-*` / `--leading-*`）。`tailwind.config.ts` がそれを Tailwind クラスに接続（`bg-primary-600` `text-muted` `rounded-lg` `shadow-card` `text-h2` 等）
+
+> **⚠️ この節は v0.1 時点の状態。docs/17 が全面的に差し替える**（トークン追加・タイプスケール拡大・`SectionHeading`/`Stat` 新規・Button/Badge/ThreadDivider/Card/Reveal 改訂・Header/Footer 刷新）。**17 の完了時にこの節を書き直すこと。**
+
+- **トークンの単一情報源は `src/app/globals.css` の `:root`**（`--color-*` / `--radius-*` / `--shadow-*` / `--leading-*`）。`tailwind.config.ts` はそれを Tailwind クラスに接続するだけ（`bg-primary-600` `text-muted` `rounded-lg` `shadow-card` `text-h2` 等）。**この二層構造は v0.2 でも維持する**（生値を `tailwind.config.ts` に直接書かない）
 - UI コンポーネント `src/components/ui/`: `Button` / `Badge` / `Card`＋`CardMedia`（写真無し時は淡藤プレースホルダ）/ `ThreadDivider`（★糸と結び目）/ `Reveal`（fade-in-up）
 - レイアウト `src/components/layout/`: `Header` / `Footer` / `LanguageSwitcher` / `JapaneseOnlyBanner`（EN 未訳バナー、表示条件のワイヤリングは各ページ側）
 - ユーティリティ: `src/lib/cn.ts`（classNames 結合）/ `src/lib/date.ts`（`formatDate(date, locale)` / `todayISO()`）
@@ -68,7 +87,10 @@ npm run lint    # ESLint
 - 注意: Next の私設フォルダ規約により `_` / `__` 始まりのフォルダはルーティング対象外
 
 ### 公開ページ・共有コンポーネント（docs/05〜10）
+
 公開ページは実装済み。新しいページ・機能はこれらを再利用する。
+
+> **⚠️ docs/19（モックのある 3 画面）と docs/20（残り 7 画面）がこれらを v0.2 に作り替える。** ただし**下の「確立したパターン」は v0.2 でも壊さない**（ISR × 絞り込みの Suspense 構造、`craft?` prop、アンカー入れ子回避、`.article-content`、EN フォールバックバナー）。作り替えるのは見た目であって、これらの構造ではない。
 - ページ: `src/app/[locale]/` 配下に `page.tsx`(ホーム) / `crafts` `experiences` `events` `articles`（＋各 `[slug]` 詳細）/ `about` `privacy`。詳細ページは `revalidate=3600` + `dynamicParams=true` + `generateStaticParams`（published slug）+ 未生成 slug は `notFound()`
 - カード/行・機能コンポーネント（`src/components/`）:
   - `crafts/CraftCard` / `crafts/StepTimeline`（工程タイムライン★）/ `crafts/CraftToc`（目次・`'use client'`・scroll-spy）
