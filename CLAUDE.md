@@ -22,6 +22,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 > 上記の前提: いま管理パネルが無くて詰まる作業は無い（コンテンツは全件 `is_provisional` で掲載交渉が未了、docs/15 の投入は `seed.sql` + Supabase MCP で可能）。**第三者に近く入力してもらう予定ができたら、11・12 を前倒しする判断に変わる。**
 
+### docs/11（管理パネル: 認証・基盤）に着手する前に知っておくこと
+
+公開ページ（docs/05〜10・17〜20）とは**ルーティングもレンダリングも認証も別系統**になる。既存資産をそのまま延長できない点だけ先に挙げる。
+
+- **`/admin` は `[locale]` の外**（`src/app/admin/`）。現在ルートレイアウトは `src/app/[locale]/layout.tsx` の 1 つだけで、そこが `<html>` を持っている。`/admin` を追加するなら **`<html>` を持つレイアウトがもう 1 つ要る**（App Router のルートレイアウト規約）。管理 UI は日本語のみなので `NextIntlClientProvider` は付けない
+- **ミドルウェアの matcher が `/admin` にもマッチする**（現行は `'/((?!api|trpc|_next|_vercel|.*\\..*).*)'`）。このままだと next-intl が `/ja/admin` へリダイレクトしてしまうので、**matcher から `admin` を除外したうえで `/admin` の認証ガードを合成する**
+- **認証は Supabase Auth ではなくパスワード + httpOnly cookie**（Sayo's Journal のパターン移植。REQUIREMENTS §9）。したがって書き込みは **`SUPABASE_SERVICE_ROLE_KEY`**（`.env.example` に枠だけ用意済み・サーバー限定）で行い、RLS の「authenticated = 全操作」はサービスロールがバイパスする前提になる（docs/03 のメモと整合させること）
+- **公開ページ用の `createServerSupabaseClient()`（anon キー・cookie 不使用）を書き込みに使わない**。別クライアントを `src/lib/supabase/` に足す
+- cookie を読むので**自然に動的レンダリングになる**（`force-dynamic` は書かない）。`noindex` を付ける
+- **フォームに docs/18 の 3 カラムを含める**: `crafts.name_latin` / `craft_translations.about_heading` / `story_heading`
+- **Storage の `images` バケットは docs/03 で作成済み**（public・URL 直アクセスで読む。listing のポリシーは advisor 対応で削除済み）。アップロード基盤を作ったら、`next/image` で表示するために **`next.config.ts` に `images.remotePatterns`（Supabase のホスト）を足す**必要がある（現状は未設定＝写真がまだ 1 枚も無いため）
+- デザインはトークンと `Button` / `Badge` / `cn` などを流用してよいが、**`Band` / `PageHero` / `SectionHeading` / `Stat` は公開ページの型**なので管理パネルに持ち込まない（フォーム・テーブルは別の型を作る）
+- スキーマを変えたら **`src/types/database.types.ts` を再生成**し、マイグレーションはローカルにも同名で置く
+
 ## チケット管理（docs/）
 
 開発は `docs/` 配下のチケット単位で進める。`docs/00-index.md` が一覧と依存関係のインデックス。
