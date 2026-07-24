@@ -192,6 +192,7 @@ export type Database = {
       }
       craft_translations: {
         Row: {
+          about_heading: string | null
           craft_id: string
           created_at: string
           hero_image_alt: string | null
@@ -202,10 +203,12 @@ export type Database = {
           locale: string
           name: string
           overview: string | null
+          story_heading: string | null
           tagline: string | null
           updated_at: string
         }
         Insert: {
+          about_heading?: string | null
           craft_id: string
           created_at?: string
           hero_image_alt?: string | null
@@ -216,10 +219,12 @@ export type Database = {
           locale: string
           name: string
           overview?: string | null
+          story_heading?: string | null
           tagline?: string | null
           updated_at?: string
         }
         Update: {
+          about_heading?: string | null
           craft_id?: string
           created_at?: string
           hero_image_alt?: string | null
@@ -230,6 +235,7 @@ export type Database = {
           locale?: string
           name?: string
           overview?: string | null
+          story_heading?: string | null
           tagline?: string | null
           updated_at?: string
         }
@@ -249,6 +255,7 @@ export type Database = {
           hero_image_url: string | null
           id: string
           is_provisional: boolean
+          name_latin: string | null
           region: string | null
           slug: string
           status: string
@@ -259,6 +266,7 @@ export type Database = {
           hero_image_url?: string | null
           id?: string
           is_provisional?: boolean
+          name_latin?: string | null
           region?: string | null
           slug: string
           status?: string
@@ -269,6 +277,7 @@ export type Database = {
           hero_image_url?: string | null
           id?: string
           is_provisional?: boolean
+          name_latin?: string | null
           region?: string | null
           slug?: string
           status?: string

@@ -17,17 +17,21 @@ delete from public.groups where slug in ('toyama-fuji-ito-kai', 'ajima-gasa-kai'
 -- craft #1: 遠山ふじ糸（published）
 -- =====================================================================
 with c as (
-  insert into public.crafts (slug, status, region, is_provisional)
-  values ('toyama-fuji-ito', 'published', '飯田市南信濃（遠山郷）', true)
+  insert into public.crafts (slug, status, region, is_provisional, name_latin)
+  values ('toyama-fuji-ito', 'published', '飯田市南信濃（遠山郷）', true,
+    'Tōyama Fuji-ito — wisteria-vine thread')
   returning id
 )
 insert into public.craft_translations
-  (craft_id, locale, name, tagline, overview, history, is_published, is_provisional)
+  (craft_id, locale, name, tagline, overview, history, about_heading, story_heading,
+   is_published, is_provisional)
 select id, 'ja',
   '遠山ふじ糸',
   '山藤の蔓から糸を紡ぐ',
   '遠山郷に伝わる、山藤（ヤマフジ）の蔓の繊維から糸を績（う）む手仕事。衣や袋物の素材として、山の暮らしの中で受け継がれてきました。※内容は確認中の仮テキストです。',
   '遠山郷では古くから、山に自生する藤の蔓を利用して糸や布を作ってきたと伝えられます。化学繊維が普及する以前、身近な植物から素材を得る知恵として山里の暮らしを支えました。近年は保存会を中心に技術の継承が進められています。※史実は確認中の仮テキストです。',
+  '山藤の蔓を、糸にする。',
+  '山の暮らしが、育てた糸。',
   true, true
 from c
 union all
@@ -36,6 +40,8 @@ select id, 'en',
   'Thread spun from mountain wisteria vines',
   'A handcraft of the Tōyama region: fiber drawn from the vines of mountain wisteria and spun into thread, long used for cloth and bags in mountain life. (Provisional text pending confirmation.)',
   'In the Tōyama region, wild wisteria vines have long been used to make thread and cloth. Before synthetic fibers spread, drawing material from nearby plants supported daily life in the mountains. Today a preservation society leads the effort to pass the technique on. (Historical details pending confirmation.)',
+  'Threads spun from the wild wisteria vine.',
+  'A thread raised by life in the mountains.',
   true, true
 from c;
 
@@ -193,14 +199,14 @@ insert into public.article_translations
 select id, 'ja',
   '遠山郷、藤の糸をたどって',
   '山藤の蔓から糸が生まれるまで。遠山ふじ糸の担い手を訪ねました。※確認中',
-  '<p>山藤の蔓から糸を績（う）む——<strong>遠山郷</strong>に受け継がれてきた手しごとの現場を訪ねました。※本記事は確認中の仮テキストです。</p><h3>蔓から糸へ</h3><p>採取した蔓を煮て柔らかくし、内側の繊維をていねいに取り出します。細く裂いた繊維を、端どうしをつないで一本の長い糸にしていきます。</p><ul><li>採取の時期と太さを見極める</li><li>繊維を績んでつなぐ</li><li>撚りをかけて仕上げる</li></ul><hr><p><em>※料金・日程などの詳細は確認中です。</em></p>',
+  '<p>山藤の蔓から糸を績（う）む——<strong>遠山郷</strong>に受け継がれてきた手しごとの現場を訪ねました。※本記事は確認中の仮テキストです。</p><h2>蔓から糸へ</h2><p>採取した蔓を煮て柔らかくし、内側の繊維をていねいに取り出します。細く裂いた繊維を、端どうしをつないで一本の長い糸にしていきます。</p><ul><li>採取の時期と太さを見極める</li><li>繊維を績んでつなぐ</li><li>撚りをかけて仕上げる</li></ul><hr><p><em>※料金・日程などの詳細は確認中です。</em></p>',
   null, true, true
 from a
 union all
 select id, 'en',
   'Following the wisteria thread in Tōyama',
   'How thread is born from mountain wisteria vines: a visit to the makers of Tōyama fuji-ito. (Provisional)',
-  '<p>Spinning thread from the vines of mountain wisteria — we visited the makers keeping this <strong>Tōyama</strong> handcraft alive. (Provisional text pending confirmation.)</p><h3>From vine to thread</h3><p>The gathered vines are simmered until soft, and the inner fibers are carefully drawn out, split thin, and joined end to end into one long strand.</p><ul><li>Judge the season and thickness when harvesting</li><li>Split and join the fibers</li><li>Add twist to finish the thread</li></ul><hr><p><em>Details such as fees and dates are being confirmed.</em></p>',
+  '<p>Spinning thread from the vines of mountain wisteria — we visited the makers keeping this <strong>Tōyama</strong> handcraft alive. (Provisional text pending confirmation.)</p><h2>From vine to thread</h2><p>The gathered vines are simmered until soft, and the inner fibers are carefully drawn out, split thin, and joined end to end into one long strand.</p><ul><li>Judge the season and thickness when harvesting</li><li>Split and join the fibers</li><li>Add twist to finish the thread</li></ul><hr><p><em>Details such as fees and dates are being confirmed.</em></p>',
   null, true, true
 from a;
 
@@ -208,17 +214,21 @@ from a;
 -- craft #2: 阿島傘（published）
 -- =====================================================================
 with c as (
-  insert into public.crafts (slug, status, region, is_provisional)
-  values ('ajima-gasa', 'published', '下伊那郡喬木村阿島', true)
+  insert into public.crafts (slug, status, region, is_provisional, name_latin)
+  values ('ajima-gasa', 'published', '下伊那郡喬木村阿島', true,
+    'Ajima-gasa — washi-and-bamboo umbrella')
   returning id
 )
 insert into public.craft_translations
-  (craft_id, locale, name, tagline, overview, history, is_published, is_provisional)
+  (craft_id, locale, name, tagline, overview, history, about_heading, story_heading,
+   is_published, is_provisional)
 select id, 'ja',
   '阿島傘',
   '喬木村阿島に伝わる和傘',
   '喬木村阿島に伝わる和傘づくり。竹の骨に和紙を貼り、油を引いて仕上げる、実用と美を兼ねた手しごとです。※内容は確認中の仮テキストです。',
   '阿島の和傘づくりは江戸期に始まり、農閑期の手仕事として地域に根づいたと伝えられます。最盛期には多くの傘が作られ、南信州の産物として知られました。現在は数少ない作り手が技術を守っています。※史実は確認中の仮テキストです。',
+  '竹の骨に、和紙を張る。',
+  '農閑期の手しごとから。',
   true, true
 from c
 union all
@@ -227,6 +237,8 @@ select id, 'en',
   'Traditional umbrellas of Ajima, Takagi',
   'Traditional Japanese umbrella-making handed down in Ajima, Takagi: washi paper over a bamboo frame, finished with oil — practical and beautiful. (Provisional text pending confirmation.)',
   'Umbrella-making in Ajima is said to have begun in the Edo period as off-season handwork that took root in the community. At its peak many umbrellas were made and known as a product of southern Shinshu. Today a few makers keep the technique alive. (Historical details pending confirmation.)',
+  'Washi paper stretched over bamboo ribs.',
+  'Born in the quiet season between harvests.',
   true, true
 from c;
 
@@ -341,13 +353,13 @@ insert into public.article_translations
 select id, 'ja',
   '阿島の傘、竹と紙のあいだで',
   '一本の傘ができるまで。阿島傘の作り手を訪ねました。※確認中',
-  '<p>竹の骨に和紙を貼り、油を引いて仕上げる——<strong>阿島</strong>に伝わる和傘づくりの作り手を訪ねました。※本記事は確認中の仮テキストです。</p><h3>竹と紙のあいだで</h3><p>竹をていねいに割って細い骨をつくり、中心の轆轤（ろくろ）に差し込んで骨組みを組みます。和紙を貼り、乾かし、油を引いて仕上げます。</p><ul><li>竹を割って骨を削り出す</li><li>骨を組み、和紙を貼る</li><li>油を引いて天日で仕上げる</li></ul><hr><p><em>※見学・体験の詳細は確認中です。</em></p>',
+  '<p>竹の骨に和紙を貼り、油を引いて仕上げる——<strong>阿島</strong>に伝わる和傘づくりの作り手を訪ねました。※本記事は確認中の仮テキストです。</p><h2>竹と紙のあいだで</h2><p>竹をていねいに割って細い骨をつくり、中心の轆轤（ろくろ）に差し込んで骨組みを組みます。和紙を貼り、乾かし、油を引いて仕上げます。</p><ul><li>竹を割って骨を削り出す</li><li>骨を組み、和紙を貼る</li><li>油を引いて天日で仕上げる</li></ul><hr><p><em>※見学・体験の詳細は確認中です。</em></p>',
   null, true, true
 from a
 union all
 select id, 'en',
   'Ajima umbrellas, between bamboo and paper',
   'How a single umbrella comes to be: a visit to the makers of Ajima-gasa. (Provisional)',
-  '<p>Washi paper over a bamboo frame, finished with oil — we visited the makers of the traditional umbrellas of <strong>Ajima</strong>. (Provisional text pending confirmation.)</p><h3>Between bamboo and paper</h3><p>Bamboo is split into slender ribs and fitted into a central hub to form the frame. Washi paper is pasted on, dried, and finished with a coat of oil.</p><ul><li>Split bamboo and shape the ribs</li><li>Assemble the frame and paste the paper</li><li>Oil and dry in the sun to finish</li></ul><hr><p><em>Details of tours and hands-on visits are being confirmed.</em></p>',
+  '<p>Washi paper over a bamboo frame, finished with oil — we visited the makers of the traditional umbrellas of <strong>Ajima</strong>. (Provisional text pending confirmation.)</p><h2>Between bamboo and paper</h2><p>Bamboo is split into slender ribs and fitted into a central hub to form the frame. Washi paper is pasted on, dried, and finished with a coat of oil.</p><ul><li>Split bamboo and shape the ribs</li><li>Assemble the frame and paste the paper</li><li>Oil and dry in the sun to finish</li></ul><hr><p><em>Details of tours and hands-on visits are being confirmed.</em></p>',
   null, true, true
 from a;
