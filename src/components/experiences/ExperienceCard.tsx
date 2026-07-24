@@ -1,13 +1,13 @@
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
+import { cn } from '@/lib/cn';
 import type { Availability, ExperienceItem } from '@/lib/data/types';
 
 type ExperienceCardProps = {
   experience: ExperienceItem;
   /** 一覧（docs/07）では所属工芸へのリンクを出す。工芸詳細では省略 */
   craft?: { slug: string; name: string } | null;
+  className?: string;
 };
 
 const AVAILABILITY_KEY: Record<Availability, string> = {
@@ -17,43 +17,58 @@ const AVAILABILITY_KEY: Record<Availability, string> = {
 };
 
 /**
- * 体験カード（DESIGN §5.4）。イベントカードと似た構造だが、日付ブロックの代わりに
- * 受付形態バッジ（success 色）を出す。ホーム/工芸詳細（docs/05,06）と体験一覧（docs/07）で共用。
+ * 体験カード（DESIGN.md §5.4）。**淡藤の面のカード**で、日付ブロックの代わりに
+ * 受付形態を金のタグで示す。イベント（日付あり）との区別を面の色で付ける。
+ *
+ * カレンダーのサイドバー「随時受付の体験」と体験一覧（3 列グリッド）が同じ部品を使う
+ * （DESIGN §6 外挿ルール: 体験一覧はサイドバーの随時受付カードを 3 列に拡大したもの）。
  */
-export async function ExperienceCard({ experience, craft }: ExperienceCardProps) {
+export async function ExperienceCard({
+  experience,
+  craft,
+  className,
+}: ExperienceCardProps) {
   const [t, tCommon] = await Promise.all([
     getTranslations('Experiences'),
     getTranslations('Common'),
   ]);
 
-  // 料金/所要/時期/申込のうち存在するものだけをラベル付きで並べる
   const meta: Array<{ label: string; value: string }> = [];
-  if (experience.priceNote) meta.push({ label: t('price'), value: experience.priceNote });
-  if (experience.durationNote) meta.push({ label: t('duration'), value: experience.durationNote });
-  if (experience.seasonNote) meta.push({ label: t('season'), value: experience.seasonNote });
-  if (experience.applyMethod) meta.push({ label: t('apply'), value: experience.applyMethod });
+  if (experience.durationNote) {
+    meta.push({ label: t('duration'), value: experience.durationNote });
+  }
+  if (experience.seasonNote) {
+    meta.push({ label: t('season'), value: experience.seasonNote });
+  }
+  if (experience.applyMethod) {
+    meta.push({ label: t('apply'), value: experience.applyMethod });
+  }
 
   return (
-    <Card className="p-5">
-      <div className="flex items-start justify-between gap-3">
-        <Badge variant="success">{t(AVAILABILITY_KEY[experience.availability])}</Badge>
-        {experience.isProvisional && (
-          <span className="text-caption text-muted">{tCommon('provisional')}</span>
+    <article
+      className={cn(
+        'relative flex flex-col rounded-md bg-primary-100 p-5 transition-[transform,box-shadow] duration-250 ease-out hover:-translate-y-0.5 hover:shadow-card',
+        className,
+      )}
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        {/* 受付形態は金の小さな面（§1「金は構造の目印」） */}
+        <span className="inline-flex items-center rounded-full bg-gold-600 px-2.5 py-1 font-en text-[10px] uppercase tracking-[0.16em] text-white">
+          {t(AVAILABILITY_KEY[experience.availability])}
+        </span>
+        {craft && (
+          <Link
+            href={`/crafts/${craft.slug}`}
+            className="text-[12px] font-semibold text-primary-700 hover:underline"
+          >
+            {craft.name}
+          </Link>
         )}
       </div>
 
-      {craft && (
-        <Link
-          href={`/crafts/${craft.slug}`}
-          className="mt-3 inline-block text-caption font-medium text-primary-700 hover:underline"
-        >
-          {craft.name}
-        </Link>
-      )}
-
-      {experience.title && <h3 className="mt-2 text-h3">{experience.title}</h3>}
+      {experience.title && <h3 className="mt-2.5 font-display text-h4">{experience.title}</h3>}
       {experience.description && (
-        <p className="mt-2 text-body text-muted">{experience.description}</p>
+        <p className="mt-1.5 text-[12px] leading-[1.7] text-muted">{experience.description}</p>
       )}
 
       {meta.length > 0 && (
@@ -67,9 +82,20 @@ export async function ExperienceCard({ experience, craft }: ExperienceCardProps)
         </dl>
       )}
 
+      <div className="mt-3 flex flex-wrap items-end justify-between gap-x-3 gap-y-1">
+        {experience.priceNote && (
+          <span className="font-en text-[15px] font-medium text-primary-700">
+            {experience.priceNote}
+          </span>
+        )}
+        {experience.isProvisional && (
+          <span className="text-caption text-muted">{tCommon('provisional')}</span>
+        )}
+      </div>
+
       {experience.group?.name && (
-        <p className="mt-3 text-caption text-muted">{experience.group.name}</p>
+        <p className="mt-2 text-caption text-muted">{experience.group.name}</p>
       )}
-    </Card>
+    </article>
   );
 }

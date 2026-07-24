@@ -4,12 +4,13 @@ import { notFound } from 'next/navigation';
 import { hasLocale } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { routing, type Locale } from '@/i18n/routing';
-import { Link } from '@/i18n/navigation';
 import { getArticles, getArticleBySlug, getCrafts } from '@/lib/data';
 import { formatDate } from '@/lib/date';
 import { sanitizeArticleHtml } from '@/lib/sanitize';
 import { JapaneseOnlyBanner } from '@/components/layout/JapaneseOnlyBanner';
-import { ThreadDivider } from '@/components/ui/ThreadDivider';
+import { Band } from '@/components/layout/Band';
+import { Kicker, SectionHeading } from '@/components/ui/SectionHeading';
+import { LinkButton } from '@/components/ui/LinkButton';
 
 export const revalidate = 3600;
 export const dynamicParams = true;
@@ -34,6 +35,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+/**
+ * 記事詳細（DESIGN.md §6 記事詳細）。読み物レイアウト（720px）。
+ * 面の順序は 1（Hero）→ 3（本文の白ブロック）→ 2（関連工芸）→ 4（フッター）。
+ *
+ * **本文のタイポは `.article-content`（globals.css）のまま**で、見出しに `SectionHeading` は
+ * 使わない（§6「記事本文用のタイポを維持する」）。v0.2 化するのはページ枠だけ。
+ */
 export default async function ArticleDetailPage({ params }: Props) {
   const { locale, slug } = await params;
   if (!hasLocale(routing.locales, locale)) {
@@ -55,74 +63,90 @@ export default async function ArticleDetailPage({ params }: Props) {
     ? (crafts.find((c) => c.id === article.craftId) ?? null)
     : null;
 
+  // kicker は `Journal · 遠山ふじ糸 · 8月23日(土)`
+  const kicker = [
+    t('detailKicker'),
+    craft?.name,
+    article.publishedAt ? formatDate(article.publishedAt, locale) : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
   return (
     <>
       {locale === 'en' && article.isFallback && <JapaneseOnlyBanner />}
 
-      <article className="mx-auto max-w-reading px-6 py-section-sm md:py-section">
-        {craft && (
-          <Link
-            href={`/crafts/${craft.slug}`}
-            className="text-caption font-medium text-primary-700 hover:underline"
-          >
-            {craft.name} ▸
-          </Link>
-        )}
+      <article>
+        {/* 面 1: Hero */}
+        <Band width="reading" padding="none">
+          <div className="py-14 md:py-20">
+            <Kicker rule={40} className="mb-5">
+              {kicker}
+            </Kicker>
+            <h1 className="font-display text-display">{article.title}</h1>
+            {article.excerpt && (
+              <p className="mt-6 font-display text-lead text-primary-700">{article.excerpt}</p>
+            )}
 
-        <h1 className="mt-2 font-display text-display">{article.title}</h1>
-
-        {article.publishedAt && (
-          <p className="mt-3 text-caption text-muted">
-            {formatDate(article.publishedAt, locale)}
-          </p>
-        )}
-
-        {article.thumbnail && (
-          <div className="relative mt-6 overflow-hidden rounded-lg" style={{ aspectRatio: '16 / 9' }}>
-            <Image
-              src={article.thumbnail}
-              alt={article.thumbnailAlt ?? ''}
-              fill
-              priority
-              sizes="(max-width: 720px) 100vw, 720px"
-              className="object-cover"
-            />
-          </div>
-        )}
-
-        <ThreadDivider className="my-section-sm" />
-
-        {article.content ? (
-          <div
-            className="article-content"
-            dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(article.content) }}
-          />
-        ) : (
-          article.excerpt && <p className="text-body-lg">{article.excerpt}</p>
-        )}
-
-        {/* 関連工芸への相互導線 */}
-        {craft && (
-          <>
-            <ThreadDivider className="my-section-sm" />
-            <div>
-              <h2 className="text-caption font-medium text-muted">{t('relatedCraft')}</h2>
-              <Link
-                href={`/crafts/${craft.slug}`}
-                className="mt-1 inline-block text-h3 text-primary-700 hover:underline"
+            {article.thumbnail && (
+              <div
+                className="relative mt-10 overflow-hidden rounded-lg shadow-deep"
+                style={{ aspectRatio: '16 / 9' }}
               >
-                {craft.name} ▸
-              </Link>
-            </div>
-          </>
-        )}
+                <Image
+                  src={article.thumbnail}
+                  alt={article.thumbnailAlt ?? ''}
+                  fill
+                  priority
+                  sizes="(max-width: 720px) 100vw, 720px"
+                  className="object-cover"
+                />
+              </div>
+            )}
+          </div>
+        </Band>
 
-        <div className="mt-10">
-          <Link href="/articles" className="text-caption text-primary-700 hover:underline">
-            ← {tCommon('backToList')}
-          </Link>
-        </div>
+        {/* 面 3: 本文（白ブロック・読み物幅）。.article-content は据え置き */}
+        <Band tone="surface" width="reading" padding="block" bordered>
+          {article.content ? (
+            <div
+              className="article-content"
+              dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(article.content) }}
+            />
+          ) : (
+            article.excerpt && <p className="text-body-lg">{article.excerpt}</p>
+          )}
+        </Band>
       </article>
+
+      {/* 面 2: 関連工芸への相互導線 */}
+      <Band tone="warm" padding="block">
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+          <div className="min-w-0">
+            <SectionHeading
+              kicker={craft ? t('relatedCraft') : t('outroKicker')}
+              title={t('outroTitle')}
+              en={t('outroEn')}
+              className="mb-4"
+            />
+            {craft ? (
+              <p className="font-display text-lead text-primary-700">{craft.name}</p>
+            ) : (
+              <p className="max-w-reading text-body text-muted">{t('outroLead')}</p>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-3.5">
+            {/* ボタンのラベルに工芸名（可変長）を入れない。ピル型は whitespace-nowrap のため
+                長い名前が SP で横スクロールを起こす（EN の工芸名で実測） */}
+            <LinkButton href={craft ? `/crafts/${craft.slug}` : '/crafts'} size="lg">
+              {craft ? t('outroCtaCraft') : t('browseCrafts')} →
+            </LinkButton>
+            <LinkButton href="/articles" variant="secondary" size="lg">
+              {tCommon('backToList')}
+            </LinkButton>
+          </div>
+        </div>
+      </Band>
     </>
   );
 }

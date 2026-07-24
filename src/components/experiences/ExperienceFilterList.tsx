@@ -4,7 +4,7 @@ import { type ReactNode, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
-import { cn } from '@/lib/cn';
+import { FilterChip } from '@/components/ui/FilterChip';
 import type { Availability } from '@/lib/data/types';
 
 export type ExperienceFilterItem = {
@@ -20,6 +20,12 @@ type Props = {
   crafts: Array<{ slug: string; name: string }>;
   regions: string[];
   availabilities: Availability[];
+};
+
+type Selection = {
+  craft: string | null;
+  region: string | null;
+  availability: string | null;
 };
 
 const AVAILABILITY_KEY: Record<Availability, string> = {
@@ -59,12 +65,17 @@ export function ExperienceFilterList({ items, crafts, regions, availabilities }:
     value: string,
   ) => setter(current === value ? null : value);
 
-  const visible = items.filter(
-    (it) =>
-      (!craft || it.craftSlug === craft) &&
-      (!region || it.region === region) &&
-      (!availability || it.availability === availability),
-  );
+  const matches = (it: ExperienceFilterItem, sel: Selection) =>
+    (!sel.craft || it.craftSlug === sel.craft) &&
+    (!sel.region || it.region === sel.region) &&
+    (!sel.availability || it.availability === sel.availability);
+
+  const selection: Selection = { craft, region, availability };
+  const visible = items.filter((it) => matches(it, selection));
+
+  // 件数バッジは「他の群の絞り込みを適用した状態での該当件数」＝押した結果の件数を出す
+  const countWith = (override: Partial<Selection>) =>
+    items.filter((it) => matches(it, { ...selection, ...override })).length;
 
   return (
     <div>
@@ -77,6 +88,7 @@ export function ExperienceFilterList({ items, crafts, regions, availabilities }:
             onAll={() => setCraft(null)}
             options={crafts.map((c) => ({ value: c.slug, label: c.name }))}
             onSelect={(v) => toggle(setCraft, craft, v)}
+            count={(v) => countWith({ craft: v })}
           />
         )}
         {regions.length > 1 && (
@@ -87,6 +99,7 @@ export function ExperienceFilterList({ items, crafts, regions, availabilities }:
             onAll={() => setRegion(null)}
             options={regions.map((r) => ({ value: r, label: r }))}
             onSelect={(v) => toggle(setRegion, region, v)}
+            count={(v) => countWith({ region: v })}
           />
         )}
         {availabilities.length > 1 && (
@@ -97,18 +110,19 @@ export function ExperienceFilterList({ items, crafts, regions, availabilities }:
             onAll={() => setAvailability(null)}
             options={availabilities.map((a) => ({ value: a, label: t(AVAILABILITY_KEY[a]) }))}
             onSelect={(v) => toggle(setAvailability, availability, v)}
+            count={(v) => countWith({ availability: v })}
           />
         )}
       </div>
 
       {visible.length > 0 ? (
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {visible.map((it) => (
             <div key={it.id}>{it.node}</div>
           ))}
         </div>
       ) : (
-        <div className="mt-8">
+        <div className="mt-10">
           <p className="text-body text-muted">{t('empty')}</p>
           <Link
             href="/crafts"
@@ -129,46 +143,35 @@ type ChipGroupProps = {
   onAll: () => void;
   options: Array<{ value: string; label: string }>;
   onSelect: (value: string) => void;
+  /** その選択にしたときの該当件数（null = すべて） */
+  count: (value: string | null) => number;
 };
 
-function ChipGroup({ label, allLabel, active, onAll, options, onSelect }: ChipGroupProps) {
+function ChipGroup({
+  label,
+  allLabel,
+  active,
+  onAll,
+  options,
+  onSelect,
+  count,
+}: ChipGroupProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <span className="mr-1 text-caption text-muted">{label}</span>
-      <Chip active={active === null} onClick={onAll}>
+      <FilterChip active={active === null} count={count(null)} onClick={onAll}>
         {allLabel}
-      </Chip>
+      </FilterChip>
       {options.map((o) => (
-        <Chip key={o.value} active={active === o.value} onClick={() => onSelect(o.value)}>
+        <FilterChip
+          key={o.value}
+          active={active === o.value}
+          count={count(o.value)}
+          onClick={() => onSelect(o.value)}
+        >
           {o.label}
-        </Chip>
+        </FilterChip>
       ))}
     </div>
-  );
-}
-
-function Chip({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={cn(
-        'inline-flex min-h-11 items-center rounded-full border px-3 text-caption font-medium transition-colors',
-        active
-          ? 'border-primary-600 bg-primary-600 text-white'
-          : 'border-border bg-surface text-foreground hover:bg-primary-100',
-      )}
-    >
-      {children}
-    </button>
   );
 }

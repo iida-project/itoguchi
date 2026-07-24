@@ -11,27 +11,32 @@ import {
  * `--font-display` / `--font-body` を切り替えて行う。
  */
 
-// 日本語ディスプレイ（見出し）。使用ウェイトのみ
+// 日本語ディスプレイ（見出し）。使用ウェイトのみ（700 = ロゴ・月見出し・スタッツ数字）
 export const shipporiMincho = Shippori_Mincho({
   subsets: ['latin'],
-  weight: ['500', '600'],
+  weight: ['500', '600', '700'],
   display: 'swap',
   variable: '--font-shippori-mincho',
 });
 
-// 日本語本文。和文フォントは容量が大きいため preload しない
+// 日本語本文。和文フォントは容量が大きいため preload しない（600 = バッジ・チップ）
 export const notoSansJP = Noto_Sans_JP({
   subsets: ['latin'],
-  weight: ['400', '500'],
+  weight: ['400', '500', '600'],
   display: 'swap',
   preload: false,
   variable: '--font-noto-sans-jp',
 });
 
-// 英語ディスプレイ（見出し）
+/*
+ * 英語ディスプレイ（見出し）。
+ * v0.2 は kicker・英字サブが全てイタリック（§3.3）。イタリックを読み込まないと
+ * ブラウザの合成になり、セリフ体では品質が明確に落ちるため style と weight を明示する。
+ */
 export const cormorantGaramond = Cormorant_Garamond({
   subsets: ['latin'],
-  weight: ['600'],
+  style: ['normal', 'italic'],
+  weight: ['400', '500', '600', '700'],
   display: 'swap',
   variable: '--font-cormorant',
 });

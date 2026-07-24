@@ -8,37 +8,80 @@
  * ロケール別のフォント／行間は <html lang> を起点に上書きする。
  */
 :root {
-  /* --- ブランドカラー（§2） --- */
+  /* --- ブランドカラー・藤系（§2） --- */
   --color-primary-700: #5b4a8a; /* 深藤: ボタン hover、強調 */
   --color-primary-600: #6d5ba4; /* 藤紫: プライマリ、リンク、糸モチーフ */
+  --color-primary-500: #8574b5; /* 中藤: 中間調（ホバー境界など） */
   --color-primary-400: #9a8cc4; /* 藤色: 装飾・アイコン専用（本文には使わない） */
+  --color-primary-200: #d5cce7; /* 淡藤（濃）: ホバー時のボーダー、スクロールバー */
   --color-primary-100: #f0ebf7; /* 淡藤: 選択背景、タグ背景 */
+  --color-primary-50: #f8f5fc; /* 極淡藤: カレンダーセルの hover */
+
+  /* --- ブランドカラー・藍系（§2） --- */
+  --color-accent-700: #164358; /* 深藍: 藍の hover */
   --color-accent-600: #1f5674; /* 藍: セカンダリ、EN バッジ、情報系 */
   --color-accent-100: #e4eef3; /* 淡藍: 情報ボックス背景 */
 
-  /* --- ニュートラル --- */
-  --color-bg: #faf7f0; /* 生成り: ページ背景 */
-  --color-surface: #ffffff; /* 白: カード、モーダル */
-  --color-text: #2b2926; /* 墨: 本文 */
+  /*
+   * --- 第 2 アクセント・金（§2「金の栞」） ---
+   * 構造の目印（罫線・結び目の外輪・下線・バッジ）専用。面として広く塗らない。
+   * コントラスト規約: 生成り上で gold-600 = 2.25:1 / gold-700 = 3.26:1 / gold-800 = 4.82:1。
+   */
+  --color-gold-800: #856911; /* 濃金: 金をテキストに使うときはこれだけ */
+  --color-gold-700: #a88516; /* 金茶: 24px 以上の大きな文字、アイコン */
+  --color-gold-600: #c9a227; /* 山吹: 罫線・結び目の外輪・下線・小さな面（テキスト不可） */
+  --color-gold-500: #d6b23f; /* 淡山吹: 装飾のグラデーション端 */
+  --color-gold-400: #e3c158; /* 淡金: バッジのボーダー */
+  --color-gold-100: #fbf4dc; /* 練色: バッジ背景、マーカー引き */
+
+  /* --- ニュートラル（面構成は §4.2） --- */
+  --color-bg: #faf7f0; /* 生成り: ページ背景（面 1） */
+  --color-bg-warm: #f5efe1; /* 生成り（濃）: セクション帯の背景（面 2） */
+  --color-bg-translucent: rgba(250, 247, 240, 0.92); /* 半透明の生成り: 追従ヘッダー */
+  --color-surface: #ffffff; /* 白: カード、白ブロック（面 3） */
+  --color-text: #2b2926; /* 墨: 本文、墨ベタのフッター（面 4） */
   --color-text-muted: #6e675e; /* 鈍色: 補足、メタ情報 */
   --color-border: #e7e1d6;
+  --color-border-strong: #c8bfae; /* セカンダリボタンの枠、プレースホルダの破線 */
 
-  /* --- セマンティック --- */
-  --color-success: #3d7a5c; /* 受付中 */
-  --color-ended: #8a857c; /* 終了イベント */
-  --color-error: #b4433a;
+  /*
+   * --- セマンティック ---
+   * バッジは淡い面 + 同系の文字（§5.10）。§2 の「テキストには濃い階調を使う」規約に従い、
+   * 文字用の濃い階調を別に持つ（gold-800 と同じ考え方）。実測は下記のとおり:
+   *   success #3D7A5C on 12% tint = 4.35:1（不足） → success-700 #356A50 = 5.07〜5.40:1 ✓
+   *   ended   #8A857C on #EDE9DF  = 3.02:1（不足） → 文字は muted #6E675E = 4.60:1 ✓
+   */
+  --color-success: #3d7a5c; /* 受付中（面・アイコン） */
+  --color-success-700: #356a50; /* 受付中バッジの文字 */
+  --color-success-100: rgba(61, 122, 92, 0.12); /* 受付中バッジの面 */
+  --color-ended: #8a857c; /* 終了イベント（写真のグレースケール・ドット） */
+  --color-ended-100: #ede9df; /* 終了バッジの面 */
+  --color-error: #b4433a; /* 朱は装飾色に使わない（エラーと区別がつかなくなる。§2） */
 
-  /* --- 形状・エレベーション（§4） --- */
+  /* --- 形状・エレベーション（§4.1） --- */
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
+  --radius-xl: 24px;
   --radius-full: 9999px;
   --shadow-card: 0 1px 2px rgba(43, 41, 38, 0.06), 0 4px 12px rgba(43, 41, 38, 0.08);
   --shadow-hover: 0 2px 4px rgba(43, 41, 38, 0.08), 0 8px 24px rgba(43, 41, 38, 0.14);
+  --shadow-deep: 0 8px 24px rgba(43, 41, 38, 0.12), 0 24px 48px rgba(43, 41, 38, 0.16);
+
+  /* --- イージング（§4.1 / §7） --- */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1); /* 標準 */
+  --ease-io: cubic-bezier(0.65, 0, 0.35, 1); /* 往復するモーション */
 
   /* --- フォント（docs/01）＋ ロケール別行間（§3） --- */
   --font-display: var(--font-shippori-mincho);
   --font-body: var(--font-noto-sans-jp);
+  /*
+   * locale 非依存の 2 本（§3.3 英字併走）。
+   * kicker・英字サブは JA ページでも Cormorant イタリックで出す必要があるため、
+   * ロケールで切り替わる --font-display とは別に固定の参照を持たせる。
+   */
+  --font-display-jp: var(--font-shippori-mincho);
+  --font-display-en: var(--font-cormorant);
   --leading-body: 1.8; /* 和文標準本文 */
   --leading-body-lg: 1.9; /* 和文 読み物本文 */
 }
@@ -79,17 +122,43 @@ html[lang='en'] {
 @layer utilities {
   /* スクロール出現（§7）。Reveal コンポーネントが可視化時に付与する */
   .animate-fade-in-up {
-    animation: fade-in-up 0.4s ease-out both;
+    animation: fade-in-up 0.8s var(--ease-out) both;
   }
 
   @keyframes fade-in-up {
     from {
       opacity: 0;
-      transform: translateY(12px);
+      transform: translateY(24px);
     }
     to {
       opacity: 1;
       transform: none;
+    }
+  }
+
+  /*
+   * マーカー引き（§1 グラデーションの例外 2 のうち 1 つ）。
+   * 見出しの強調語に金の下線帯を敷く。面の塗りには使わない。
+   */
+  .mark-gold {
+    background-image: linear-gradient(transparent 65%, var(--color-gold-100) 65%);
+  }
+
+  /*
+   * 麻の葉（淡藤）— イベントカレンダーページ専用（§5.9）。
+   * SVG は DESIGN.md §5.9 の正本をそのまま転記（data URL・外部リクエストなし）。
+   * 濃さを変えるときは stroke-opacity だけを触る（色を変えるとブランドから外れる）。
+   */
+  .pat-asanoha-soft {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 138.56' width='80' height='138.56'><g fill='none' stroke='%236D5BA4' stroke-width='0.5' stroke-opacity='0.14'><path d='M40 0 L80 23.09 L80 69.28 L40 92.37 L0 69.28 L0 23.09 Z'/><path d='M40 0 L40 92.37'/><path d='M0 23.09 L80 69.28'/><path d='M80 23.09 L0 69.28'/><path d='M40 0 L0 46.19 L40 92.37 L80 46.19 Z'/><path d='M40 46.19 L0 23.09'/><path d='M40 46.19 L80 23.09'/><path d='M40 46.19 L0 69.28'/><path d='M40 46.19 L80 69.28'/></g></svg>");
+    background-size: 80px 138.56px;
+    background-attachment: fixed;
+  }
+
+  /* fixed は iOS で描画が重いため SP では scroll に落とす（§8） */
+  @media (max-width: 639px) {
+    .pat-asanoha-soft {
+      background-attachment: scroll;
     }
   }
 }

@@ -1,6 +1,6 @@
 import type { Locale } from '@/i18n/routing';
 import type { Tables } from '@/types/database.types';
-import { resolveTranslation } from './translations';
+import { resolveEnglishTranslation, resolveTranslation } from './translations';
 import type {
   ArticleDetail,
   ArticleListItem,
@@ -69,6 +69,7 @@ export type CraftDetailRow = CraftRow & {
 
 export function shapeCraftListItem(row: CraftRow, locale: Locale): CraftListItem {
   const { translation, isFallback } = resolveTranslation(row.craft_translations, locale);
+  const english = resolveEnglishTranslation(row.craft_translations, locale);
   return {
     id: row.id,
     slug: row.slug,
@@ -77,6 +78,9 @@ export function shapeCraftListItem(row: CraftRow, locale: Locale): CraftListItem
     name: translation?.name ?? row.slug,
     tagline: translation?.tagline ?? null,
     overview: translation?.overview ?? null,
+    nameLatin: row.name_latin,
+    nameEn: english?.name ?? null,
+    taglineEn: english?.tagline ?? null,
     isProvisional: row.is_provisional || Boolean(translation?.is_provisional),
     isFallback,
   };
@@ -84,6 +88,7 @@ export function shapeCraftListItem(row: CraftRow, locale: Locale): CraftListItem
 
 export function shapeGroup(row: GroupRow, locale: Locale): GroupItem {
   const { translation, isFallback } = resolveTranslation(row.group_translations, locale);
+  const english = resolveEnglishTranslation(row.group_translations, locale);
   return {
     id: row.id,
     slug: row.slug,
@@ -93,6 +98,7 @@ export function shapeGroup(row: GroupRow, locale: Locale): GroupItem {
     contact: row.contact,
     snsUrls: row.sns_urls ?? [],
     name: translation?.name ?? row.slug,
+    nameEn: english?.name ?? null,
     description: translation?.description ?? null,
     isProvisional: row.is_provisional || Boolean(translation?.is_provisional),
     isFallback,
@@ -104,12 +110,14 @@ export function shapeStep(row: CraftStepRow, locale: Locale): CraftStepItem {
     row.craft_step_translations,
     locale,
   );
+  const english = resolveEnglishTranslation(row.craft_step_translations, locale);
   return {
     id: row.id,
     position: row.position,
     imageUrl: row.image_url,
     imageAlt: translation?.image_alt ?? null,
     title: translation?.title ?? null,
+    titleEn: english?.title ?? null,
     description: translation?.description ?? null,
     isFallback,
   };

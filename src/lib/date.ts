@@ -62,9 +62,45 @@ export function formatDateParts(
 
   return {
     month: fmt({ month: opts.month }), // ja: '8月' / en: 'Aug'
-    day: fmt({ day: 'numeric' }), //      '23'
+    // 日は数字だけ欲しい。ja-JP の { day:'numeric' } は '23日' と単位付きで返すため、
+    // 数字表記が同じ en-US で整形する（日付ブロックは大きな数字が視線のアンカー）
+    day: new Intl.DateTimeFormat('en-US', {
+      day: 'numeric',
+      timeZone: 'Asia/Tokyo',
+    }).format(value),
     weekday: fmt({ weekday: opts.weekday }), // ja: '日' / en: 'Sun'
   };
+}
+
+/*
+ * 和風月名（DESIGN.md §5.3 の月グルーピング）。
+ * 暦の固定名なので messages ではなくここに置く（翻訳フローに乗せる対象ではない）。
+ * EN はローマ字併記の方針（DESIGN §10 の未決事項を docs/19 で決定）。
+ */
+const WAFU_MONTHS: Record<Locale, readonly string[]> = {
+  ja: [
+    '睦月', '如月', '弥生', '卯月', '皐月', '水無月',
+    '文月', '葉月', '長月', '神無月', '霜月', '師走',
+  ],
+  en: [
+    'Mutsuki', 'Kisaragi', 'Yayoi', 'Uzuki', 'Satsuki', 'Minazuki',
+    'Fumizuki', 'Hazuki', 'Nagatsuki', 'Kannazuki', 'Shimotsuki', 'Shiwasu',
+  ],
+};
+
+/**
+ * 和風月名を返す。`8` → ja: `葉月` / en: `Hazuki`。
+ * @param month 1〜12
+ */
+export function wafuMonthName(month: number, locale: Locale): string {
+  return WAFU_MONTHS[locale][month - 1] ?? '';
+}
+
+/** 月の英字名（`August`）。月見出しの英字併走に使う */
+export function englishMonthName(month: number): string {
+  return new Intl.DateTimeFormat('en-US', { month: 'long', timeZone: 'Asia/Tokyo' }).format(
+    new Date(2026, month - 1, 1),
+  );
 }
 
 /**

@@ -1,10 +1,11 @@
 import type { ComponentProps, ReactNode } from 'react';
 import { Link } from '@/i18n/navigation';
-import { buttonClasses, type ButtonVariant } from './buttonStyles';
+import { buttonClasses, type ButtonSize, type ButtonVariant } from './buttonStyles';
 
 type LinkButtonProps = {
   href: ComponentProps<typeof Link>['href'];
   variant?: ButtonVariant;
+  size?: ButtonSize;
   className?: string;
   children: ReactNode;
 };
@@ -16,11 +17,12 @@ type LinkButtonProps = {
 export function LinkButton({
   href,
   variant = 'primary',
+  size = 'md',
   className,
   children,
 }: LinkButtonProps) {
   return (
-    <Link href={href} className={buttonClasses(variant, className)}>
+    <Link href={href} className={buttonClasses({ variant, size, className })}>
       {children}
     </Link>
   );

@@ -4,7 +4,7 @@ import { type ReactNode, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
-import { cn } from '@/lib/cn';
+import { FilterChip } from '@/components/ui/FilterChip';
 
 export type ArticleFilterItem = {
   id: string;
@@ -36,35 +36,38 @@ export function ArticleFilterList({ items, crafts }: Props) {
   }, [craft]);
 
   const visible = items.filter((it) => !craft || it.craftSlug === craft);
+  const countFor = (slug: string | null) =>
+    items.filter((it) => (slug === null ? true : it.craftSlug === slug)).length;
 
   return (
     <div>
       {crafts.length > 1 && (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-caption text-muted">{t('filterCraft')}</span>
-          <Chip active={craft === null} onClick={() => setCraft(null)}>
+          <span className="mr-1 text-caption text-muted">{t('filterCraft')}</span>
+          <FilterChip active={craft === null} count={countFor(null)} onClick={() => setCraft(null)}>
             {t('all')}
-          </Chip>
+          </FilterChip>
           {crafts.map((c) => (
-            <Chip
+            <FilterChip
               key={c.slug}
               active={craft === c.slug}
+              count={countFor(c.slug)}
               onClick={() => setCraft(craft === c.slug ? null : c.slug)}
             >
               {c.name}
-            </Chip>
+            </FilterChip>
           ))}
         </div>
       )}
 
       {visible.length > 0 ? (
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {visible.map((it) => (
             <div key={it.id}>{it.node}</div>
           ))}
         </div>
       ) : (
-        <div className="mt-8">
+        <div className="mt-10">
           <p className="text-body text-muted">{t('empty')}</p>
           <Link
             href="/crafts"
@@ -75,31 +78,5 @@ export function ArticleFilterList({ items, crafts }: Props) {
         </div>
       )}
     </div>
-  );
-}
-
-function Chip({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={cn(
-        'inline-flex min-h-11 items-center rounded-full border px-3 text-caption font-medium transition-colors',
-        active
-          ? 'border-primary-600 bg-primary-600 text-white'
-          : 'border-border bg-surface text-foreground hover:bg-primary-100',
-      )}
-    >
-      {children}
-    </button>
   );
 }

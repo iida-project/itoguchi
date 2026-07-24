@@ -6,8 +6,8 @@ import { routing } from '@/i18n/routing';
 import { cn } from '@/lib/cn';
 
 /**
- * 「日本語 / EN」ピル型トグル（DESIGN.md §5.6）。
- * 現在パスを保ったまま locale だけ切り替え、現在 locale を藤紫で表示する。
+ * 「日本語 / EN」ピル型トグル（DESIGN.md §5.6 / §5.13）。
+ * 現在パスを保ったまま locale だけ切り替え、現在 locale を藤紫のベタで示す。
  */
 export function LanguageSwitcher() {
   const pathname = usePathname();
@@ -17,7 +17,7 @@ export function LanguageSwitcher() {
   return (
     <div
       aria-label={t('label')}
-      className="inline-flex items-center rounded-full border border-border bg-surface p-0.5 text-caption"
+      className="inline-flex items-center rounded-full border border-border-strong bg-surface p-0.5 text-[12px]"
     >
       {routing.locales.map((loc) => {
         const active = loc === current;
@@ -28,8 +28,8 @@ export function LanguageSwitcher() {
             locale={loc}
             aria-current={active ? 'true' : undefined}
             className={cn(
-              'flex min-h-11 items-center rounded-full px-3 font-medium transition-colors',
-              active ? 'bg-primary-100 text-primary-600' : 'text-muted hover:text-foreground',
+              'flex min-h-11 items-center rounded-full px-3.5 font-semibold transition-colors',
+              active ? 'bg-primary-600 text-white' : 'text-muted hover:text-foreground',
             )}
           >
             {t(loc)}

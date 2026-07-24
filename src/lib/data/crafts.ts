@@ -3,7 +3,7 @@ import { cache } from 'react';
 import type { Locale } from '@/i18n/routing';
 import { todayISO } from '@/lib/date';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
-import { resolveTranslation } from './translations';
+import { resolveEnglishTranslation, resolveTranslation } from './translations';
 import {
   collectGroups,
   shapeArticleListItem,
@@ -62,6 +62,8 @@ export const getCraftBySlug = cache(
     const today = todayISO();
     const base = shapeCraftListItem(row, locale);
     const { translation } = resolveTranslation(row.craft_translations, locale);
+    // 章見出しの英字サブ（§3.3 層 2）。EN 未公開・EN ロケールでは null になる
+    const english = resolveEnglishTranslation(row.craft_translations, locale);
 
     const steps = [...row.craft_steps]
       .sort((a, b) => a.position - b.position)
@@ -85,6 +87,10 @@ export const getCraftBySlug = cache(
     return {
       ...base,
       history: translation?.history ?? null,
+      aboutHeading: translation?.about_heading ?? null,
+      aboutHeadingEn: english?.about_heading ?? null,
+      storyHeading: translation?.story_heading ?? null,
+      storyHeadingEn: english?.story_heading ?? null,
       steps,
       groups,
       experiences,

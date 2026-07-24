@@ -2,7 +2,16 @@
 
 import { type ReactNode, useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import {
+  buildMonthMatrix,
+  eventsOnDay,
+  hasEventsInMonth,
+  shiftMonth,
+  type YearMonth,
+} from '@/lib/calendar';
+import { englishMonthName, wafuMonthName } from '@/lib/date';
 import { cn } from '@/lib/cn';
+import type { Locale } from '@/i18n/routing';
 
 export type EventCalendarItem = {
   id: string;
@@ -10,6 +19,9 @@ export type EventCalendarItem = {
   endDate: string | null;
   isEnded: boolean;
   craftSlug: string | null;
+  /** カレンダーのセルに出す短いタイトル */
+  title: string;
+  /** サーバーで確定済みのイベント行 */
   node: ReactNode;
 };
 
@@ -19,163 +31,146 @@ type Props = {
   experienceNodes: ReactNode[];
 };
 
-const LOCALE_TAG: Record<string, string> = { ja: 'ja-JP', en: 'en-US' };
-
-const pad = (n: number) => String(n).padStart(2, '0');
-const daysInMonth = (year: number, month1: number) => new Date(year, month1, 0).getDate();
+const CELL_EVENT_LIMIT = 2;
 
 /**
- * 自作の月カレンダー（DESIGN §5.3・ライブラリ不使用）。イベント日に藤紫の結び目ドット、
- * 月移動＋「今日」、日クリックで当日イベントを下に表示。空月は随時体験を併記（空白ページ禁止）。
- * 曜日/月見出しは Intl でロケール生成。日付判定は 'YYYY-MM-DD' の辞書順比較（＝時系列）。
+ * 自作の月カレンダー（DESIGN §5.3 / §6・ライブラリ不使用）。
+ * セル最小高 120px で**イベント名を直接表示**し、結び目ドットで状態を示す
+ * （金 = 開催予定 / 鈍色 = 終了。「要予約」はデータモデルに無いので 2 色）。
+ *
+ * 月グリッドの計算は `lib/calendar.ts` の純関数に寄せ、MiniCalendar と共有する。
  */
 export function MonthCalendar({ items, today, experienceNodes }: Props) {
   const t = useTranslations('Events');
-  const locale = useLocale();
-  const tag = LOCALE_TAG[locale] ?? 'ja-JP';
+  const locale = useLocale() as Locale;
+  const tag = locale === 'en' ? 'en-US' : 'ja-JP';
 
   const [ty, tm] = today.split('-').map(Number);
-  const [cursor, setCursor] = useState<{ y: number; m: number }>({ y: ty, m: tm });
+  const [cursor, setCursor] = useState<YearMonth>({ y: ty, m: tm });
   const [selected, setSelected] = useState<string | null>(today);
 
   const weekdays = useMemo(() => {
-    const fmt = new Intl.DateTimeFormat(tag, { weekday: 'short' });
-    // 2023-01-01 は日曜
+    const fmt = new Intl.DateTimeFormat('en-US', { weekday: 'short' });
     return Array.from({ length: 7 }, (_, i) => fmt.format(new Date(2023, 0, 1 + i)));
-  }, [tag]);
+  }, []);
 
-  const first = new Date(cursor.y, cursor.m - 1, 1);
-  const startWeekday = first.getDay();
-  const numDays = daysInMonth(cursor.y, cursor.m);
-  const monthLabel = new Intl.DateTimeFormat(tag, {
-    year: 'numeric',
-    month: 'long',
-  }).format(first);
-
-  const eventsOnDay = (dayStr: string) =>
-    items.filter(
-      (it) => dayStr >= it.startDate && dayStr <= (it.endDate ?? it.startDate),
-    );
-
-  const monthStart = `${cursor.y}-${pad(cursor.m)}-01`;
-  const monthEnd = `${cursor.y}-${pad(cursor.m)}-${pad(numDays)}`;
-  const monthHasEvents = items.some(
-    (it) => it.startDate <= monthEnd && (it.endDate ?? it.startDate) >= monthStart,
-  );
-
-  const move = (delta: number) =>
-    setCursor(({ y, m }) => {
-      const idx = y * 12 + (m - 1) + delta;
-      return { y: Math.floor(idx / 12), m: (idx % 12) + 1 };
-    });
-  const goToday = () => {
-    setCursor({ y: ty, m: tm });
-    setSelected(today);
-  };
-
-  const selectedEvents = selected ? eventsOnDay(selected) : [];
+  const cells = useMemo(() => buildMonthMatrix(cursor), [cursor]);
+  const monthHasEvents = hasEventsInMonth(items, cursor);
+  const selectedEvents = selected ? eventsOnDay(items, selected) : [];
   const selectedLabel = selected
     ? new Intl.DateTimeFormat(tag, {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
         weekday: 'short',
-      }).format(
-        (() => {
-          const [y, m, d] = selected.split('-').map(Number);
-          return new Date(y, m - 1, d);
-        })(),
-      )
+        timeZone: 'Asia/Tokyo',
+      }).format(new Date(`${selected}T00:00:00+09:00`))
     : '';
 
   return (
     <div>
       {/* 月ヘッダ */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => move(-1)}
-            aria-label="前の月"
-            className="flex h-11 w-11 items-center justify-center rounded-full text-h3 text-foreground hover:bg-primary-100"
-          >
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
+        <h2 className="flex items-baseline gap-3 font-jp text-[32px] font-bold tracking-[0.06em] text-primary-700 md:text-[48px]">
+          {locale === 'en' ? englishMonthName(cursor.m) : `${cursor.m}月`}
+          <small className="font-en text-[18px] font-normal italic tracking-[0.08em] text-gold-800 [font-synthesis:none] md:text-[22px]">
+            {locale === 'en'
+              ? `· ${wafuMonthName(cursor.m, locale)}`
+              : `${englishMonthName(cursor.m)} · ${wafuMonthName(cursor.m, locale)}`}
+          </small>
+          <span className="font-en text-[16px] font-normal text-muted">{cursor.y}</span>
+        </h2>
+        <div className="flex items-center gap-2">
+          <NavButton label={t('prevMonth')} onClick={() => setCursor(shiftMonth(cursor, -1))}>
             ‹
-          </button>
-          <h2 className="min-w-[8rem] text-center text-h3">{monthLabel}</h2>
+          </NavButton>
           <button
             type="button"
-            onClick={() => move(1)}
-            aria-label="次の月"
-            className="flex h-11 w-11 items-center justify-center rounded-full text-h3 text-foreground hover:bg-primary-100"
+            onClick={() => {
+              setCursor({ y: ty, m: tm });
+              setSelected(today);
+            }}
+            className="inline-flex h-10 items-center rounded-full border border-primary-600 bg-primary-600 px-5 text-caption font-medium text-white transition-colors duration-250 ease-out hover:bg-primary-700"
           >
-            ›
+            {t('today')}
           </button>
+          <NavButton label={t('nextMonth')} onClick={() => setCursor(shiftMonth(cursor, 1))}>
+            ›
+          </NavButton>
         </div>
-        <button
-          type="button"
-          onClick={goToday}
-          className="inline-flex min-h-11 items-center rounded-full border border-border bg-surface px-4 text-caption font-medium hover:bg-primary-100"
-        >
-          {t('today')}
-        </button>
       </div>
 
-      {/* 曜日ヘッダ */}
-      <div className="mt-4 grid grid-cols-7 text-center">
+      {/* 日グリッド（1px の隙間を border 色で見せる） */}
+      <div className="grid grid-cols-7 gap-px overflow-hidden rounded-md border border-border bg-border">
         {weekdays.map((w) => (
-          <div key={w} className="pb-2 text-caption text-muted">
-            {w}
+          <div
+            key={w}
+            className="bg-primary-100 px-2 py-3 font-en text-[11px] font-semibold uppercase tracking-[0.12em] text-primary-700 md:px-4"
+          >
+            {w.slice(0, 3)}
           </div>
         ))}
-      </div>
-
-      {/* 日グリッド */}
-      <div className="grid grid-cols-7 gap-1">
-        {Array.from({ length: startWeekday }).map((_, i) => (
-          <div key={`blank-${i}`} aria-hidden="true" />
-        ))}
-        {Array.from({ length: numDays }, (_, i) => i + 1).map((dayNum) => {
-          const dayStr = `${cursor.y}-${pad(cursor.m)}-${pad(dayNum)}`;
-          const dayEvents = eventsOnDay(dayStr);
-          const hasEvents = dayEvents.length > 0;
-          const hasUpcoming = dayEvents.some((it) => !it.isEnded);
-          const isToday = dayStr === today;
-          const isSelected = dayStr === selected;
+        {cells.map((cell) => {
+          const dayEvents = eventsOnDay(items, cell.date);
+          const isToday = cell.date === today;
+          const isSelected = cell.date === selected;
           return (
             <button
-              key={dayStr}
+              key={cell.date}
               type="button"
-              disabled={!hasEvents}
-              onClick={() => setSelected(dayStr)}
+              onClick={() => setSelected(cell.date)}
               aria-pressed={isSelected}
               className={cn(
-                'relative flex h-11 flex-col items-center justify-center rounded-md text-caption',
-                hasEvents ? 'cursor-pointer hover:bg-primary-100' : 'text-muted',
-                isSelected && 'bg-primary-100',
-                isToday && 'font-bold text-primary-700',
+                'min-h-[88px] p-2 text-left align-top transition-colors duration-250 ease-out md:min-h-[120px] md:p-3',
+                cell.inMonth ? 'bg-surface hover:bg-primary-50' : 'bg-warm text-muted',
+                isSelected && 'bg-primary-50',
               )}
             >
-              <span>{dayNum}</span>
-              {hasEvents && (
+              <span
+                className={cn(
+                  'font-en text-[15px] font-medium',
+                  isToday &&
+                    'inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-600 text-white',
+                )}
+              >
+                {cell.day}
+              </span>
+              {dayEvents.slice(0, CELL_EVENT_LIMIT).map((event) => (
                 <span
-                  aria-hidden="true"
+                  key={event.id}
                   className={cn(
-                    'mt-0.5 h-1.5 w-1.5 rounded-full',
-                    hasUpcoming ? 'bg-primary-600' : 'bg-ended',
+                    'mt-1.5 flex items-center gap-1.5 truncate rounded-sm px-2 py-1 text-[11px] font-semibold leading-tight',
+                    event.isEnded
+                      ? 'bg-ended-100 text-muted'
+                      : 'bg-primary-100 text-primary-700',
                   )}
-                />
+                >
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      'h-1.5 w-1.5 shrink-0 rounded-full',
+                      event.isEnded ? 'bg-ended' : 'bg-gold-600',
+                    )}
+                  />
+                  <span className="truncate">{event.title}</span>
+                </span>
+              ))}
+              {dayEvents.length > CELL_EVENT_LIMIT && (
+                <span className="mt-1 block text-[11px] text-muted">
+                  +{dayEvents.length - CELL_EVENT_LIMIT}
+                </span>
               )}
             </button>
           );
         })}
       </div>
 
-      {/* 選択日のイベント / 空月は随時体験を併記 */}
-      {monthHasEvents ? (
-        <div className="mt-6">
+      {/* 選択日のイベント */}
+      {monthHasEvents && (
+        <div className="mt-8">
           <h3 className="text-caption font-medium text-muted">{selectedLabel}</h3>
           {selectedEvents.length > 0 ? (
-            <div className="mt-3 flex flex-col gap-3">
+            <div className="mt-3 flex flex-col gap-4">
               {selectedEvents.map((it) => (
                 <div key={it.id}>{it.node}</div>
               ))}
@@ -184,16 +179,40 @@ export function MonthCalendar({ items, today, experienceNodes }: Props) {
             <p className="mt-3 text-body text-muted">{t('noEventsOnDay')}</p>
           )}
         </div>
-      ) : (
-        <div className="mt-8">
-          <h3 className="text-h3">{t('alsoExperiences')}</h3>
-          <div className="mt-3 grid grid-cols-1 gap-6 sm:grid-cols-2">
+      )}
+
+      {/* 空白ページ禁止（§6）: 開催予定が無い日でも随時受付の体験を必ず併記する */}
+      <div className="mt-8 rounded-md bg-primary-100 p-6">
+        <p className="font-display text-h4 text-primary-700">{t('emptyMonthNote')}</p>
+        {experienceNodes.length > 0 && (
+          <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
             {experienceNodes.map((node, i) => (
               <div key={i}>{node}</div>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
+  );
+}
+
+function NavButton({
+  label,
+  onClick,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  children: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-h3 text-foreground transition-colors duration-250 ease-out hover:bg-primary-100"
+    >
+      {children}
+    </button>
   );
 }

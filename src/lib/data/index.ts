@@ -4,4 +4,5 @@ export { getExperiences } from './experiences';
 export { getEvents, getEventBySlug } from './events';
 export { getArticles, getArticleBySlug } from './articles';
 export { getHomeData } from './home';
+export { getSiteStats, type SiteStats } from './stats';
 export type * from './types';

@@ -26,3 +26,20 @@ export function resolveTranslation<T extends { locale: string }>(
     isFallback: locale !== DEFAULT_LOCALE && fallback !== null,
   };
 }
+
+/**
+ * 英字併走（DESIGN §3.3 層 2）用に EN の翻訳行を取り出す。
+ *
+ * クエリは locale で絞らず published 翻訳を全取得しているので、**追加クエリは不要**。
+ * この配列から EN 行を拾うだけで済む。
+ *
+ * - EN 未公開なら RLS で行自体が来ない → null（＝英字行を省略する）
+ * - EN ロケールでは常に null。見出しも英語になり同じ言語が 2 行続くため（§3.3）
+ */
+export function resolveEnglishTranslation<T extends { locale: string }>(
+  rows: T[],
+  locale: Locale,
+): T | null {
+  if (locale === 'en') return null;
+  return rows.find((row) => row.locale === 'en') ?? null;
+}
