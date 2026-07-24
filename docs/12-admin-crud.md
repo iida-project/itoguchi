@@ -21,6 +21,7 @@
 ## Todo
 
 - [ ] 工芸 CRUD（翻訳タブ + hero 画像 + status 切替 + 管理メモ）
+  - **docs/18 で追加した 3 カラムを入力欄に含める**: `crafts.name_latin`（locale 非依存・ヒーローの英字）/ `craft_translations.about_heading` / `craft_translations.story_heading`（翻訳タブ側・ja/en それぞれ）
 - [ ] 工程のリスト編集（並び替え + 画像）
 - [ ] 担い手 CRUD
 - [ ] 体験 CRUD
