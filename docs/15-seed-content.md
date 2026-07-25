@@ -23,8 +23,8 @@
 - [x] noindex + robots 全拒否の設定確認（14 と連動）→ robots.txt=`Disallow: /`・公開ページと `/admin` の全てに `noindex, nofollow` を curl で確認
 - [x] 交渉用確認チェックリストの自動生成（is_provisional 項目の一覧出力）→ `/admin/provisional`
 - [ ] ~~プレビュー URL（Vercel）で共有できる状態にする~~ → **docs/16 へ送る**（デプロイ基盤が前提。`NEXT_PUBLIC_SITE_URL` の環境別設定も 16 で）
-- [ ] **OGP 画像テンプレート（docs/14 からの送り）** — 工芸名 + 写真 + 糸モチーフ。`opengraph-image` に JP フォントを同梱する
-- [ ] **OGP 画像を入れたら `src/lib/seo/metadata.ts` の `twitterFor` を `summary` → `summary_large_image` に戻す**（画像が無いあいだ大画像カードを宣言しても実態と食い違うため暫定で落としてある）
+- [x] **OGP 画像テンプレート（docs/14 からの送り）** — 写真が使えないので**糸と結び目 + 金の栞 + タイポ**で構成。JP フォントは同梱せず Google Fonts の `text=` サブセット（TTF）を取る
+- [x] **`twitterFor` を `summary` → `summary_large_image` に戻す**
 
 ## 交渉時の確認チェックリスト（テンプレート）
 
@@ -105,6 +105,28 @@
 **検証**: 適用後に `craft_translations.overview`/`history`（4 行 × 2 列）と `article_translations.content`
 （4 行）の計 12 項目について、DB 側の `md5()` と seed.sql 内の `$$...$$` ブロックの md5 が**全件一致**する
 ことを確認済み。写真が入るなど UUID 依存の状態ができた後は、計画どおり差分 update に戻すこと。
+
+### OGP 画像（`src/lib/og/` + 公開 10 セグメントの `opengraph-image.tsx`）
+
+- **写真は使わない**ので、糸と結び目のマーク + 金の罫線の kicker + 工芸名 + 英字併走 + 糸の区切りで組んだ。
+  破線のプレースホルダ枠も置いていない（共有カードとしての品位を優先）
+- **`SITE_PHASE=preview` のあいだは右上に「交渉中のデモ / Provisional demo」バッジ**が出る。
+  プレビュー URL を誤って共有しても本公開のカードに見えない。`public` に切り替えると自動で消える
+- **10 セグメントすべてにファイルが要る**。Next のメタデータ解決は `openGraph` を祖先から継承せず
+  丸ごと置換し、ファイル規約の画像は「そのセグメントの `openGraph` が `images` を持たないとき」に
+  だけ注入される。公開 10 ページは全部 `openGraphFor()` を返すので `[locale]/` に 1 枚では効かない
+- **`openGraphFor()` に `images` を足してはいけない**（足すとファイル規約の画像が無視される）。
+  `twitter` も `images` を持たなければ Next が og:image から twitter:image を自動補完するので
+  `twitter-image.tsx` は不要
+- **フォントはリポジトリに同梱しない**。`next/font/google` の出力は woff2 のみで satori が読めないため、
+  Google Fonts CSS API の `text=` サブセット（`format('truetype')` が返る）を使う。サブセット化ツールも不要
+- **フォント取得は直列化 + リトライが必須**。20 枚を同時にプリレンダすると
+  `fonts.googleapis.com` への同時接続が増えて `ETIMEDOUT` でビルドが落ちる（実測）。
+  `src/lib/og/fonts.ts` にプロセス内キューと指数バックオフを入れてある
+- メタデータルートの `params` は **Promise ではない**（loader が await 済みで渡す）。
+  `generateStaticParams` は**パス上の全動的パラメータ**（`locale` × `slug`）を返す必要がある
+- **`og:image` は `metadataBase`（`NEXT_PUBLIC_SITE_URL`）で絶対化される**ので、プレビュー環境では
+  そのドメインを入れないと画像が 404 になる → docs/16 の環境変数設定と連動する
 
 ### 用語集（glossary）
 

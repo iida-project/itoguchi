@@ -103,8 +103,9 @@ export function openGraphFor({
 
 /**
  * Twitter/X カード。
- * **og:image が入るまでは `summary`**（`summary_large_image` を画像なしで宣言しても
- * 大画像は描かれず、宣言だけが実態と食い違う）。OGP 画像を作る docs/15 で戻す。
+ * docs/15 で公開全ルートに `opengraph-image`（1200×630）を置いたので large image に戻した。
+ * **`images` キーを持たせないこと** — Next の postProcessMetadata が og:image を
+ * twitter:image へ自動補完する条件がそれなので、`twitter-image.tsx` も要らない。
  */
 export function twitterFor({
   title,
@@ -113,5 +114,5 @@ export function twitterFor({
   title?: string;
   description?: string | null;
 }): Metadata['twitter'] {
-  return { card: 'summary', title, description: description ?? undefined };
+  return { card: 'summary_large_image', title, description: description ?? undefined };
 }

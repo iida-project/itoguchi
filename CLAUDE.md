@@ -6,15 +6,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **いとぐち（Itoguchi）** — 南信州（飯田・下伊那）の伝統工芸ポータル。工芸単位の「正本ページ」と体験・イベントの横断カレンダーで「体験したい人への案内係」を務めるサイト。日英 2 言語。Sayo's Journal の技術構成・設計資産を流用した横展開第 1 号。
 
-基盤チケット（docs/01〜04）と公開ページ（docs/05〜10: ホーム / 工芸一覧・詳細 / 体験一覧 / イベントカレンダー・詳細 / 記事一覧・詳細 / About・Privacy）、**デザインリフレッシュ（docs/17〜20）・管理パネル（docs/11〜12）・AI 英訳（docs/13）・SEO/AIO（docs/14）は実装済み**（公開 10 画面すべて v0.2）。**未着手は docs/15（シード本番化・OGP 画像・掲載交渉後の実素材投入）、docs/16（デプロイ・運用）のみ。** 最新の進捗は `docs/00-index.md` の状態欄を参照。**仕様の正本は `REQUIREMENTS.md`（要件・データモデル・画面構成）と `DESIGN.md`（デザインシステム）**。実装前に必ず両方を参照すること。
+基盤チケット（docs/01〜04）と公開ページ（docs/05〜10: ホーム / 工芸一覧・詳細 / 体験一覧 / イベントカレンダー・詳細 / 記事一覧・詳細 / About・Privacy）、**デザインリフレッシュ（docs/17〜20）・管理パネル（docs/11〜12）・AI 英訳（docs/13）・SEO/AIO（docs/14）・シード本番化と OGP 画像（docs/15）は実装済み**（公開 10 画面すべて v0.2）。**残るは docs/16（デプロイ・運用）のみ**（掲載交渉後の実素材投入は交渉待ち）。 最新の進捗は `docs/00-index.md` の状態欄を参照。**仕様の正本は `REQUIREMENTS.md`（要件・データモデル・画面構成）と `DESIGN.md`（デザインシステム）**。実装前に必ず両方を参照すること。
 
 ### 着手順（2026-07-23 決定）
 
 ```
-17（完了） → 18（完了） → 19（完了） → 20（完了） → 11（完了） → 12（完了） → 13（完了） → 14（完了） → 15 → 16
+17（完了） → 18（完了） → 19（完了） → 20（完了） → 11（完了） → 12（完了） → 13（完了） → 14（完了） → 15（完了） → 16
 ```
 
-**次に着手するのは docs/15（シード本番化）。** docs/11〜14 は完了（14 は OGP 画像のみ docs/15 に送り）。デザインリフレッシュ（17〜20）を管理パネルより先に終わらせた理由:
+**次に着手するのは docs/16（デプロイ・運用）。** docs/15 は完了（**プレビュー URL の共有と `NEXT_PUBLIC_SITE_URL` の環境別設定だけ docs/16 に送り**。OGP 画像は `metadataBase` 経由で絶対化されるため、プレビュー環境で正しいドメインを入れないと og:image が 404 になる）。デザインリフレッシュ（17〜20）を管理パネルより先に終わらせた理由:
 
 - **17 のタイプスケール変更は破壊的**（`display` 40→74px / `h2` 28→40px / `max-w-content` 1120→1280px）。17 より前に作った画面は作り直しになる。管理パネルはフォーム・テーブルで 10 画面以上あるため、変わると分かっているスケールの上に積まない
 - **18 は 12 より先**。18 で増える 3 カラム（`crafts.name_latin` / `craft_translations.about_heading` / `story_heading`）は管理パネルの入力欄に必要。後回しにすると 12 のフォームを二度作る
@@ -31,7 +31,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **middleware は matcher を据え置き、内部で `/admin` を分岐**してガードする（`src/middleware.ts`）。`/admin` を先に処理して return するので next-intl は `/admin` を触らない（`/ja/admin` に化けない）。※ 旧メモの「matcher から admin を除外」は Todo「ミドルウェアの `/admin` ガード」と両立しないため不採用
 - **認証はパスワード + httpOnly cookie**（Sayo's Journal 移植・REQUIREMENTS §9）。`src/lib/admin/session.ts`（edge-safe・Web Crypto HMAC・`signSession`/`verifySession`/`verifyPassword`）と `src/lib/admin/auth.ts`（`server-only`・`isAuthenticated`/`requireAuth`/`setSessionCookie`/`clearSessionCookie`）。cookie は httpOnly/secure(本番)/sameSite=lax/**path=/admin**。env は `ADMIN_PASSWORD` / `ADMIN_SESSION_SECRET`
 - **書き込みは `createAdminSupabaseClient()`**（`src/lib/supabase/admin.ts`・service-role・`server-only`）。RLS をバイパスするので**必ず認証の内側から呼ぶ**。公開ページ用の `createServerSupabaseClient()`（anon）は書き込みに使わない
-- サイドナビの単一情報源は `src/lib/admin/nav.ts`（`adminNavItems`）。ナビは i18n 版でなく素の `next/link` + `next/navigation` の `usePathname`（`src/components/admin/AdminNav.tsx`）
+- サイドナビの単一情報源は `src/lib/admin/nav.ts`（`adminNavItems`）。ナビは i18n 版でなく素の `next/link` + `next/navigation` の `usePathname`（`src/components/admin/AdminNav.tsx`）。**CRUD でないページは `description` を付ける**（無指定だとダッシュボードのカードが「一覧・作成・編集」になる）
+- **交渉チェックリスト `/admin/provisional`（docs/15）**: `is_provisional` が立つ行を全エンティティから集めて交渉相手＝工芸ごとに並べる読み取り専用ページ。データは `src/lib/admin/data/provisional.ts`（既存の `list*()` を `Promise.all` で束ねる。工程だけ横断リーダーが無かったので `listCraftSteps()` を `data/crafts.ts` に追加）。`groups` に `craft_id` が無いので体験・イベントの `group_id → craft_id` から逆引きする。チェックは `<input type="checkbox">` にしない（保存先のカラムが無くリロードで消えるため `☐` の箇条書き）
 
 **CRUD 基盤（docs/12・再利用する）**:
 - **管理の読み取りは `src/lib/admin/data/*`**（`createAdminSupabaseClient()`・publish フィルタ無しで **draft も ja/en 両方**取得）。公開層 `src/lib/data`（published のみ）とは別系統。list/edit の 2 種。
@@ -162,8 +163,15 @@ npm run lint    # ESLint
 - **PC / SP でブロックを 2 本立てにしない**（`hidden lg:block` × `lg:hidden` の出し分け）: h1 のような一意であるべき要素が DOM に 2 つ並ぶ。位置と配色をレスポンシブに切り替えて**1 つに統合**する（`CraftHero` がこの形。ただし工芸詳細の追従サイドバーだけは grid の構造上どうしても 2 本立てが必要）
 - **`cache()` した取得関数に `{}` を渡さない**: `cache()` は引数の同一性でキーを引くので `getEvents(locale, {})` は呼ぶたび別キーになり、同じクエリが二重に走る。絞り込みが不要なら**第 2 引数を渡さない**
 
-### シードコンテンツの現状（docs/05〜09 で demo 拡充済み）
-`supabase/seed.sql` が正本。リモート DB へは Supabase MCP `execute_sql` で冪等適用する（**`events`/`articles` は slug unique かつ `craft_id` が `on delete set null` のため slug で明示削除。`crafts` 削除で `craft_translations`/`craft_steps`/`experiences`/`spots` は cascade**）。現状: 2 工芸とも `published`＋全セクション分投入（工程4/歴史/スポット/担い手/体験/イベント/記事）、events は過去1＋未来2（アーカイブ＋外部申込ボタン demo）、体験は anytime/request、記事本文は HTML。**すべて `is_provisional`・写真なし。docs/15 で本番コンテンツに差し替える**。記事本文の見出しは **`<h2>` から始める**（ページの h1 の次に来るため。docs/20 で `<h3>` 始まりを修正済み）。**DB のコンテンツを更新したら `rm -rf .next` のクリーンビルド**をしないと出力に反映されないことがある。
+### シードコンテンツの現状（docs/15 で本番化済み）
+`supabase/seed.sql` が正本。リモート DB へは Supabase MCP `execute_sql` で適用する（**`events`/`articles` は slug unique かつ `craft_id` が `on delete set null` のため slug で明示削除。`crafts` 削除で `craft_translations`/`craft_steps`/`experiences`/`spots` は cascade**）。
+
+- **本文はすべて公開情報から書き起こし、記述と出典 URL の対応を `docs/15-seed-content.md` の「出典」節に残してある**。各工芸の `crafts.admin_note`（管理パネルの「管理メモ」）にも出典と交渉状況を控える。**裏の取れない固有名詞・数値は書かない**（旧シードは「阿島傘保存会」など実在しない団体名を推測で作っていた）。
+- **`is_provisional` は §10-1 の定義どおり「推測で補った箇所」だけ**に立てる。出典のある記述には立てない。現状は体験 4 件と日程仮置きのイベント 2 件の計 6 件で、`/admin/provisional` に並ぶ。
+- 現状: 2 工芸とも `published`。工程 4 / 歴史 / スポット（遠山 2・阿島 1）/ 担い手 / 体験 4（request 3・seasonal 1）/ イベント 3（実在の過去 1 + 日程仮置きの未来 2）/ 記事 2（HTML・1,100 字前後）。`glossary` は 20 語投入済み。**写真は 1 枚も無い**（docs/15 の交渉が済むまで入らない）。
+- 記事本文の見出しは **`<h2>` から始める**（ページの h1 の次に来るため）。記事は取材記事ではないので**「訪ねました」と書かない**。末尾に「公開情報をもとに編集部でまとめた」旨の断りを入れる。
+- **DB のコンテンツを更新したら `rm -rf .next` のクリーンビルド**をしないと出力に反映されないことがある。
+- **リモートへ seed を全流しすると子テーブルの UUID が総入れ替えになる**。写真をアップロードした後（Storage の画像が UUID に紐づいた後）は、slug/position/locale 条件の差分 `update` に切り替えること（現状は画像 0 件なので全流しで運用している。経緯は docs/15 のメモ）。
 
 ## Next.js 15 App Router ベストプラクティス
 
@@ -204,8 +212,11 @@ Next.js 15.5（本プロジェクトの採用バージョン）の公式ドキ�
 - **EN 未訳ページの扱い（hreflang の要）**: EN 訳が未公開の詳細ページは日本語を表示する（`isFallback`）。そこに `hreflang="en"` を出すと「日本語の中身を英語版として申告」することになるので、**詳細 3 ページは `generateMetadata` で EN 版を 1 回引き**（`locale==='en'` のときは取得済みデータを再利用）、`alternatesFor(locale, path, { translatedLocales: translatedLocalesFrom(enVersion) })` を渡す。未訳なら **hreflang から en を落とし canonical を日本語版へ寄せる**。sitemap も同じルール。公開済みのときだけ canonical は locale 自己参照。
 - **sitemap は `src/app/sitemap.ts`**（絶対 URL・**言語版ごとに `<url>` を 1 つ**作り、各エントリに自分自身を含む全言語の `xhtml:link` を出す＝Google の hreflang 仕様。**en は `isFallback===false` のときだけ**）。**`revalidate=3600` の ISR**（メタデータルートは既定でビルド時固定）＋ `revalidatePublic()` が `revalidatePath('/sitemap.xml')` も叩く（`revalidatePath('/[locale]','layout')` は `[locale]` の外に波及しない）。**robots は `src/app/robots.ts`**（preview=全拒否 / public=許可+sitemap）。どちらも `[locale]` の外。
 - **root の 404 継承回避**: `localePrefix:'always'` で `/` に page が無いと robots/sitemap が 404 を継承する。**`src/app/page.tsx`（`redirect('/ja')`）と素通しの `src/app/layout.tsx`（`return children`）**で解決済み（`[locale]`・`admin` の 2 root layout はそのまま）。**この 2 ファイルは消さない**。
-- 新しい公開ページを足したら `generateMetadata` に `alternatesFor` + `openGraphFor` を、detail には該当 JSON-LD + `breadcrumbJsonLd` を付ける。sitemap の `STATIC_PATHS` にも追加する。
-- **OGP 画像は未実装**（docs/15 で写真 + JP フォント同梱の `opengraph-image` を作る）。現状は og:title/description のみで、**`twitterFor` は暫定的に `card:'summary'`**。画像を入れたら `summary_large_image` に戻す。
+- 新しい公開ページを足したら `generateMetadata` に `alternatesFor` + `openGraphFor` を、detail には該当 JSON-LD + `breadcrumbJsonLd` を付ける。sitemap の `STATIC_PATHS` にも追加する。**`opengraph-image.tsx` も同じセグメントに置く**（下記）。
+- **OGP 画像は `src/lib/og/`（docs/15 実装済み）**: `config.ts`（`OG_SIZE`/`OG_CONTENT_TYPE`/`OG_COLOR` = globals.css の `:root` からの写し。satori は CSS 変数を解決しないため。**トークンを変えたら両方直す**）/ `fonts.ts`（Google Fonts CSS API の `text=` サブセット TTF。`next/font/google` の出力は woff2 で satori が読めない。**取得はプロセス内で直列化 + 指数バックオフ**。並列に投げると 20 枚同時プリレンダで `ETIMEDOUT` になる）/ `image.tsx`（`renderOgImage` と `resolveOgParams`）。**写真は使わない**構図（糸と結び目 + 金の kicker + タイポ）。
+  - **公開 10 セグメントすべてに `opengraph-image.tsx` が要る**。Next は `openGraph` を祖先から継承せず丸ごと置換し、ファイル規約の画像は「そのセグメントの `openGraph` が `images` を持たないとき」だけ注入されるため、`[locale]/` に 1 枚では効かない。
+  - **`openGraphFor()` に `images` を足さない**（足すとファイル規約の画像が無視される）。`twitterFor` も `images` を持たないので Next が og:image → twitter:image を自動補完する（`twitter-image.tsx` は不要）。
+  - メタデータルートの `params` は **Promise ではない**。`generateStaticParams` は**パス上の全動的パラメータ**（`locale` × `slug` の直積）を返す。
 
 ## アーキテクチャの要点（REQUIREMENTS.md より）
 
