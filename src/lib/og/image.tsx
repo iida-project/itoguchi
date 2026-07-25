@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 import { routing, type Locale } from '@/i18n/routing';
-import { SITE_PHASE, siteName } from '@/lib/seo/config';
+import { SITE_PHASE, SITE_URL, siteName } from '@/lib/seo/config';
 import { OG_COLOR as C, OG_SIZE, OG_CONTENT_TYPE } from './config';
 import { loadOgFonts } from './fonts';
 
@@ -85,10 +85,12 @@ export async function renderOgImage({ locale, kicker, title, latin: rawLatin, no
   const region = locale === 'en' ? 'Minami-Shinshu, Nagano, Japan' : '南信州・飯田／下伊那';
   const phaseLabel = locale === 'en' ? 'Provisional demo' : '交渉中のデモ';
   const isPreview = SITE_PHASE === 'preview';
+  const siteHost = SITE_URL.replace(/^https?:\/\//, '');
 
-  // 描く文字だけをサブセット取得する。1 文字でも漏らすと豆腐になるので全部渡す。
+  // 描く文字だけをサブセット取得する。**1 文字でも漏らすと豆腐か別フォントに落ちる**ので、
+  // カード上に出る文字列を漏れなく渡すこと（siteHost を忘れて字形が崩れた実績あり）。
   const fonts = await loadOgFonts(
-    [brand, 'ITOGUCHI', kicker, title, latin, note, region, isPreview ? phaseLabel : '']
+    [brand, 'ITOGUCHI', kicker, title, latin, note, region, siteHost, isPreview ? phaseLabel : '']
       .filter(Boolean)
       .join(''),
   );
@@ -240,8 +242,12 @@ export async function renderOgImage({ locale, kicker, title, latin: rawLatin, no
             }}
           >
             <div>{region}</div>
+            {/*
+              ドメインは SITE_URL から引く。文字列で持つと、まだ取得していないドメイン
+              （itoguchi.jp は第三者のもの）をカードに刷り込んでしまう。
+            */}
             <div style={{ fontFamily: CORMORANT, fontStyle: 'italic', fontSize: 22 }}>
-              itoguchi.jp
+              {siteHost}
             </div>
           </div>
         </div>

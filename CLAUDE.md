@@ -6,15 +6,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **いとぐち（Itoguchi）** — 南信州（飯田・下伊那）の伝統工芸ポータル。工芸単位の「正本ページ」と体験・イベントの横断カレンダーで「体験したい人への案内係」を務めるサイト。日英 2 言語。Sayo's Journal の技術構成・設計資産を流用した横展開第 1 号。
 
-基盤チケット（docs/01〜04）と公開ページ（docs/05〜10: ホーム / 工芸一覧・詳細 / 体験一覧 / イベントカレンダー・詳細 / 記事一覧・詳細 / About・Privacy）、**デザインリフレッシュ（docs/17〜20）・管理パネル（docs/11〜12）・AI 英訳（docs/13）・SEO/AIO（docs/14）・シード本番化と OGP 画像（docs/15）は実装済み**（公開 10 画面すべて v0.2）。**残るは docs/16（デプロイ・運用）のみ**（掲載交渉後の実素材投入は交渉待ち）。 最新の進捗は `docs/00-index.md` の状態欄を参照。**仕様の正本は `REQUIREMENTS.md`（要件・データモデル・画面構成）と `DESIGN.md`（デザインシステム）**。実装前に必ず両方を参照すること。
+基盤チケット（docs/01〜04）と公開ページ（docs/05〜10: ホーム / 工芸一覧・詳細 / 体験一覧 / イベントカレンダー・詳細 / 記事一覧・詳細 / About・Privacy）、**デザインリフレッシュ（docs/17〜20）・管理パネル（docs/11〜12）・AI 英訳（docs/13）・SEO/AIO（docs/14）・シード本番化と OGP 画像（docs/15）・デプロイ準備（docs/16 のリポジトリ側）は実装済み**（公開 10 画面すべて v0.2）。**残るは Vercel ダッシュボードでの設定操作と、掲載交渉後の実素材投入**（どちらもコード作業ではない。手順は `docs/16-deploy-ops.md` に集約済み）。 最新の進捗は `docs/00-index.md` の状態欄を参照。**仕様の正本は `REQUIREMENTS.md`（要件・データモデル・画面構成）と `DESIGN.md`（デザインシステム）**。実装前に必ず両方を参照すること。
 
 ### 着手順（2026-07-23 決定）
 
 ```
-17（完了） → 18（完了） → 19（完了） → 20（完了） → 11（完了） → 12（完了） → 13（完了） → 14（完了） → 15（完了） → 16
+17（完了） → 18（完了） → 19（完了） → 20（完了） → 11（完了） → 12（完了） → 13（完了） → 14（完了） → 15（完了） → 16（リポジトリ側は完了）
 ```
 
-**次に着手するのは docs/16（デプロイ・運用）。** docs/15 は完了（**プレビュー URL の共有と `NEXT_PUBLIC_SITE_URL` の環境別設定だけ docs/16 に送り**。OGP 画像は `metadataBase` 経由で絶対化されるため、プレビュー環境で正しいドメインを入れないと og:image が 404 になる）。デザインリフレッシュ（17〜20）を管理パネルより先に終わらせた理由:
+**MVP のコード作業は一巡した。** 残っているのは Vercel ダッシュボードでの設定（プロジェクト作成・env 投入・デプロイ）と、掲載交渉後の実素材投入。**手順は `docs/16-deploy-ops.md`**（セットアップ手順 / 本公開切替チェックリスト / 運用メモ）に集約してある。デザインリフレッシュ（17〜20）を管理パネルより先に終わらせた理由:
 
 - **17 のタイプスケール変更は破壊的**（`display` 40→74px / `h2` 28→40px / `max-w-content` 1120→1280px）。17 より前に作った画面は作り直しになる。管理パネルはフォーム・テーブルで 10 画面以上あるため、変わると分かっているスケールの上に積まない
 - **18 は 12 より先**。18 で増える 3 カラム（`crafts.name_latin` / `craft_translations.about_heading` / `story_heading`）は管理パネルの入力欄に必要。後回しにすると 12 のフォームを二度作る
@@ -81,7 +81,7 @@ npm run lint    # ESLint
 - **Tailwind CSS は v3.4.17 に意図的にピン留め**（v4 ではない）。`tailwind.config.ts` + PostCSS 方式。v4 の CSS-first 記法（`@theme` 等）は使わない
 - **i18n**: next-intl v4 導入済み。**Supabase**: 専用プロジェクト（ref `cknlipxwpxrcbexrbjbd` / ap-northeast-1、sayo-blog とは分離）にスキーマ・RLS・Storage 構築済み。`@supabase/supabase-js` + `server-only` 導入済み
 - **`sanitize-html`** 導入済み（記事 HTML 本文のサニタイズ用。`src/lib/sanitize.ts`）
-- **Tiptap v3 導入済み**（`@tiptap/react` / `@tiptap/starter-kit` / `@tiptap/pm`・docs/12。記事本文エディタのみで使用）。**Gemini（英訳下訳）は SDK 無しの `fetch` で導入済み**（`src/lib/admin/translate/*`・docs/13・env `GEMINI_API_KEY`）。Vercel ホスティングは未導入（docs/16 で対応）
+- **Tiptap v3 導入済み**（`@tiptap/react` / `@tiptap/starter-kit` / `@tiptap/pm`・docs/12。記事本文エディタのみで使用）。**Gemini（英訳下訳）は SDK 無しの `fetch` で導入済み**（`src/lib/admin/translate/*`・docs/13・env `GEMINI_API_KEY`）。**Vercel はリポジトリ側の準備のみ完了**（`vercel.json` の Cron + `/api/cron/keepalive`・docs/16。プロジェクト作成と env 設定はダッシュボードで未実施）
 - `.mcp.json` と `.env.local` は認証情報を含むため gitignore 済み。コミットしない（公開クライアント用の env は `.env.example` に記載）
 
 ## 実装済みの基盤（再利用する既存資産）
@@ -208,6 +208,7 @@ Next.js 15.5（本プロジェクトの採用バージョン）の公式ドキ�
 
 ### メタデータ / SEO（docs/14 実装済み・再利用する）
 - **SEO の面は `src/lib/seo/*`**: `config.ts`（`SITE_URL`/`SITE_PHASE`/`isIndexable`/`localePath`/`absUrl`/**`siteName(locale)`**・env `NEXT_PUBLIC_SITE_URL` / `NEXT_PUBLIC_SITE_PHASE`）/ `metadata.ts`（`alternatesFor`=canonical+hreflang(ja/en/x-default)・**`translatedLocalesFrom`**・`openGraphFor`・`twitterFor`）/ `jsonld.ts`（`websiteJsonLd`/`organizationJsonLd`/`breadcrumbJsonLd`/`craftJsonLd`/`eventJsonLd`/`articleJsonLd`）。埋め込みは `src/components/seo/JsonLd.tsx`（`<` エスケープ）。
+- **`SITE_URL` は実在ドメインを既定値にしない**（docs/16）。`NEXT_PUBLIC_SITE_URL` → `VERCEL_URL`(preview デプロイ) → `VERCEL_PROJECT_PRODUCTION_URL` → `http://localhost:3000` の順に解決し、**Vercel 上でどれも取れなければ throw** する（localhost の canonical を出荷しないため）。Vercel のシステム環境変数は `NEXT_PUBLIC_` ではないので **`config.ts` は `server-only`**。クライアントから import すると URL が静かに壊れる。※ `itoguchi.jp` は**第三者が使用中**なので既定値にもカードの表示にも使わない。
 - **`metadataBase` はルート `[locale]/layout.tsx`** に置き、各 `generateMetadata` は**相対**の alternates/OG を返す（Next が絶対化）。**robots メタは phase=preview で site-wide noindex**（layout）。WebSite+Organization JSON-LD も layout で全ページに出す。**layout のメタは静的 `metadata` ではなく `generateMetadata`**（title テンプレート `%s | いとぐち`/`| Itoguchi`・既定 description・og:site_name・JSON-LD の name を locale 別に出すため。サイト名の正本は `Site.title`(messages) と `siteName(locale)`）。
 - **EN 未訳ページの扱い（hreflang の要）**: EN 訳が未公開の詳細ページは日本語を表示する（`isFallback`）。そこに `hreflang="en"` を出すと「日本語の中身を英語版として申告」することになるので、**詳細 3 ページは `generateMetadata` で EN 版を 1 回引き**（`locale==='en'` のときは取得済みデータを再利用）、`alternatesFor(locale, path, { translatedLocales: translatedLocalesFrom(enVersion) })` を渡す。未訳なら **hreflang から en を落とし canonical を日本語版へ寄せる**。sitemap も同じルール。公開済みのときだけ canonical は locale 自己参照。
 - **sitemap は `src/app/sitemap.ts`**（絶対 URL・**言語版ごとに `<url>` を 1 つ**作り、各エントリに自分自身を含む全言語の `xhtml:link` を出す＝Google の hreflang 仕様。**en は `isFallback===false` のときだけ**）。**`revalidate=3600` の ISR**（メタデータルートは既定でビルド時固定）＋ `revalidatePublic()` が `revalidatePath('/sitemap.xml')` も叩く（`revalidatePath('/[locale]','layout')` は `[locale]` の外に波及しない）。**robots は `src/app/robots.ts`**（preview=全拒否 / public=許可+sitemap）。どちらも `[locale]` の外。
