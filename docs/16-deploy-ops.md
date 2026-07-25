@@ -16,9 +16,9 @@ Vercel へのデプロイと運用の仕組み。**交渉期間は noindex の�
 - [x] `.env.example` に `CRON_SECRET` を追加、`NEXT_PUBLIC_SITE_URL` の扱いを更新
 - [x] 本公開切替チェックリストの**作成**（下記）
 - [x] エラー監視・ログの確認手段を決める → **Vercel の Runtime Logs / Observability で足りる**（外部サービスは入れない）
-- [ ] Vercel プロジェクト作成・リポジトリ連携 ← **ここから先はダッシュボード操作**
-- [ ] 環境変数設定（下表）
-- [ ] デプロイして「デプロイ後の確認」を実施
+- [x] Vercel プロジェクト作成・リポジトリ連携 → `itoguchi-omega.vercel.app`
+- [x] 環境変数設定（下表）
+- [x] デプロイして「デプロイ後の確認」を実施 → **`https://itoguchi-omega.vercel.app`**（robots / sitemap 28 件 / canonical / noindex / 公開 22 URL すべて 200 / OGP 画像 / `/admin` ガードを確認済み。keepalive の 200 確認だけ `CRON_SECRET` を持つ本人の手元で）
 - [ ] プレビュー保護の要否を判断（既定は「かけない」）
 - [ ] ドメイン取得・DNS 設定（**`itoguchi.jp` は使用不可**。下記「ドメイン」参照）
 - [ ] 本公開切替チェックリストの**実施**（交渉成立後）
@@ -76,10 +76,25 @@ curl -s -o /dev/null -w '%{http_code}\n' $BASE/ja/crafts/toyama-fuji-ito/opengra
 curl -s -o /dev/null -w '%{http_code} -> %{redirect_url}\n' $BASE/admin                   # → 307 → /admin/login
 ```
 
+keepalive は認証が要るので手で叩く（`CRON_SECRET` は Vercel に登録した値）:
+
+```bash
+curl -s -w ' [%{http_code}]\n' -H "Authorization: Bearer <CRON_SECRET>" $BASE/api/keepalive
+# → {"ok":true,"timestamp":"...","crafts":2} [200]
+# crafts が 2 で返れば Supabase まで実際に到達している
+```
+
 - ブラウザで `/ja` `/en` の 10 画面を通しで見る。工芸詳細の Hero に「あなたの写真で、ここが完成します。」が出ること
 - **OGP 画像を開いて、右上に「交渉中のデモ」バッジ・右下にデプロイ先のドメインが出ること**
 - 管理パネルに**新しい `ADMIN_PASSWORD`** でログインし、1 件保存 → 公開ページに反映されること
-- Settings → Cron Jobs に 1 件表示されること。手動実行して 200 と `{"ok":true,...}` が返ること
+
+### Cron の確認（プロジェクト → **Settings → Cron Jobs**）
+
+- デプロイ後に `/api/keepalive`（`0 3 * * *`）が 1 件表示されること。**`vercel.json` を足しただけでは登録されない**（デプロイして初めて反映される）
+- **手動実行のボタンは無い**。あるのは「Disable Cron Jobs」と「View Logs」だけなので、動作確認は上の curl で行う
+- **Hobby プランは指定した「時」の中の任意の時刻に実行される**（負荷分散のため）。`0 3 * * *` は UTC 03:00〜03:59 = **JST 12:00〜12:59 のどこか**で走る。分単位で正確に走るのは Pro 以上
+- 実行結果は Cron Jobs 一覧の **View Logs** から見る（`requestPath:/api/keepalive` で絞り込まれた Runtime Logs に飛ぶ）
+- Cron は**リダイレクトを追わない**。`/api` は middleware の matcher から除外してあるので問題ないが、パスを変えるときは注意する
 
 ---
 
