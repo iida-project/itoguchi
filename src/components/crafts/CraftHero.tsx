@@ -23,7 +23,7 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
  * （PC/SP で 2 本立てにすると DOM に h1 が 2 つ並ぶため）。
  */
 export async function CraftHero({ craft, index }: CraftHeroProps) {
-  const t = await getTranslations('Crafts');
+  const [t, tCommon] = await Promise.all([getTranslations('Crafts'), getTranslations('Common')]);
   const hasPhoto = Boolean(craft.heroImageUrl);
 
   // Origin（創業年）はスキーマに無いので出さない。データのある項目だけ並べる
@@ -58,6 +58,26 @@ export async function CraftHero({ craft, index }: CraftHeroProps) {
               className="absolute inset-0 bg-gradient-to-b from-transparent from-40% to-foreground/60"
             />
           </>
+        )}
+
+        {/*
+          写真が無いあいだの中身（DESIGN §9）。面だけ敷いて無地にせず、通し番号 + 提案文を置く。
+          交渉時に見せる画面なので「入れたらこうなる」を伝える役割を持たせる（REQUIREMENTS §10-2）。
+          PC ではタイトルブロックが枠の下端に被さるので、その分だけ上へ逃がす。
+        */}
+        {!hasPhoto && (
+          <div
+            className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center lg:pb-40"
+            aria-hidden="true"
+          >
+            <span className="font-en text-[32px] italic leading-none text-primary-500 [font-synthesis:none]">
+              {index ? `No. ${pad2(index)}` : 'Photo'}
+            </span>
+            <p className="max-w-[28ch] font-display text-h4 text-primary-700">
+              {tCommon('photoInvite')}
+            </p>
+            <p className="text-caption text-muted">{tCommon('photoPending')}</p>
+          </div>
         )}
 
         {/* 通し番号プレート */}

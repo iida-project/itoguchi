@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { hasLocale } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
@@ -11,6 +10,7 @@ import { JapaneseOnlyBanner } from '@/components/layout/JapaneseOnlyBanner';
 import { Band } from '@/components/layout/Band';
 import { Kicker, SectionHeading } from '@/components/ui/SectionHeading';
 import { LinkButton } from '@/components/ui/LinkButton';
+import { CardMedia } from '@/components/ui/Card';
 import {
   alternatesFor,
   openGraphFor,
@@ -123,21 +123,20 @@ export default async function ArticleDetailPage({ params }: Props) {
               <p className="mt-6 font-display text-lead text-primary-700">{article.excerpt}</p>
             )}
 
-            {article.thumbnail && (
-              <div
-                className="relative mt-10 overflow-hidden rounded-lg shadow-deep"
-                style={{ aspectRatio: '16 / 9' }}
-              >
-                <Image
-                  src={article.thumbnail}
-                  alt={article.thumbnailAlt ?? ''}
-                  fill
-                  priority
-                  sizes="(max-width: 720px) 100vw, 720px"
-                  className="object-cover"
-                />
-              </div>
-            )}
+            {/*
+              写真の有無で枠ごと消さない（DESIGN §9「写真の有無で高さが変わらない」）。
+              null のときは CardMedia が破線プレースホルダを出す。
+            */}
+            <CardMedia
+              src={article.thumbnail}
+              alt={article.thumbnailAlt ?? ''}
+              aspectClassName="aspect-[16/9]"
+              className="mt-10 rounded-lg shadow-deep"
+              sizes="(max-width: 720px) 100vw, 720px"
+              priority
+              placeholderLabel="Journal"
+              placeholderNote={tCommon('photoPending')}
+            />
           </div>
         </Band>
 

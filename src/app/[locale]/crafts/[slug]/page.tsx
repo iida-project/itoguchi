@@ -252,6 +252,11 @@ export default async function CraftDetailPage({ params }: Props) {
                     </div>
                   ))}
                 </div>
+                {/*
+                  提案文はページに 1〜2 回まで（Hero とここ）。各カードに繰り返すと
+                  提案ではなくノイズになるので、章末に 1 行だけ添える。
+                */}
+                <p className="mt-4 text-caption text-muted">{tCommon('photoInvite')}</p>
               </section>
             )}
 

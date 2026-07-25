@@ -63,6 +63,8 @@ export default async function HomePage({ params }: Props) {
   const { upcomingEvents, crafts, latestArticles, stats } = home;
 
   const craftById = new Map(crafts.map((c) => [c.id, c]));
+  // Hero に借りる写真（写真のある工芸の 1 件目。まだ 1 枚も無ければ null）
+  const heroCraft = crafts.find((c) => c.heroImageUrl) ?? null;
   // 通し番号は工芸ごとに固定（一覧・詳細と同じ番号になる）
   const craftNumbers = craftNumberMap(crafts);
   const seeAll = (href: string) => (
@@ -112,12 +114,18 @@ export default async function HomePage({ params }: Props) {
             </div>
           </div>
 
-          {/* 写真は docs/15 まで入らない。4:5 の枠だけ先に確定させる（§9） */}
+          {/*
+            サイト固有の Hero 画像カラムは持たない方針なので、写真のある工芸の 1 枚目を借りる。
+            まだ 1 枚も無いあいだは 4:5 の枠だけが立つ（§9）。枠の高さは写真の有無で動かない。
+          */}
           <div className="relative order-1 lg:order-2">
             <CardMedia
-              src={null}
+              src={heroCraft?.heroImageUrl ?? null}
+              alt={heroCraft?.name ?? ''}
               aspectClassName="aspect-[4/5]"
               className="rounded-lg shadow-deep"
+              sizes="(max-width: 1024px) 100vw, 45vw"
+              priority
               placeholderLabel="Photo"
               placeholderNote={t('heroPhotoCaption')}
             />

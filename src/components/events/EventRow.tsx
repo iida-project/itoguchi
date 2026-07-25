@@ -110,7 +110,16 @@ export async function EventRow({
             event.isEnded && 'grayscale',
           )}
         >
-          <CardMedia src={null} aspectClassName="aspect-[3/2]" sizes="150px" />
+          {/*
+            events に画像カラムが無いので src は常に null。150px 幅の枠なので §9 の
+            「英字ラベル + 注記」のうちラベルだけを出す（注記を足すと折り返して枠を割る）。
+          */}
+          <CardMedia
+            src={null}
+            aspectClassName="aspect-[3/2]"
+            sizes="150px"
+            placeholderLabel="Event"
+          />
         </div>
 
         <div className="col-span-2 flex items-center justify-between gap-4 md:col-span-1 md:block md:text-right">
