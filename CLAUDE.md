@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **いとぐち（Itoguchi）** — 南信州（飯田・下伊那）の伝統工芸ポータル。工芸単位の「正本ページ」と体験・イベントの横断カレンダーで「体験したい人への案内係」を務めるサイト。日英 2 言語。Sayo's Journal の技術構成・設計資産を流用した横展開第 1 号。
 
-基盤チケット（docs/01〜04）と公開ページ（docs/05〜10: ホーム / 工芸一覧・詳細 / 体験一覧 / イベントカレンダー・詳細 / 記事一覧・詳細 / About・Privacy）、**デザインリフレッシュ（docs/17〜20）・管理パネル（docs/11〜12）・AI 英訳（docs/13）・SEO/AIO（docs/14）・シード本番化と OGP 画像（docs/15）・デプロイ準備（docs/16 のリポジトリ側）は実装済み**（公開 10 画面すべて v0.2）。**残るは Vercel ダッシュボードでの設定操作と、掲載交渉後の実素材投入**（どちらもコード作業ではない。手順は `docs/16-deploy-ops.md` に集約済み）。 最新の進捗は `docs/00-index.md` の状態欄を参照。**仕様の正本は `REQUIREMENTS.md`（要件・データモデル・画面構成）と `DESIGN.md`（デザインシステム）**。実装前に必ず両方を参照すること。
+基盤チケット（docs/01〜04）と公開ページ（docs/05〜10: ホーム / 工芸一覧・詳細 / 体験一覧 / イベントカレンダー・詳細 / 記事一覧・詳細 / About・Privacy）、**デザインリフレッシュ（docs/17〜20）・管理パネル（docs/11〜12）・AI 英訳（docs/13）・SEO/AIO（docs/14）・シード本番化と OGP 画像（docs/15）・デプロイ準備（docs/16 のリポジトリ側）は実装済み**（公開 10 画面すべて v0.2）。**MVP は一巡し、`https://itoguchi-omega.vercel.app` にデプロイ済み**（交渉中のため全ページ noindex + robots 全拒否）。**残るは掲載交渉と、成立後の実素材投入・本公開切替**（手順は `docs/16-deploy-ops.md` に集約済み）。 最新の進捗は `docs/00-index.md` の状態欄を参照。**仕様の正本は `REQUIREMENTS.md`（要件・データモデル・画面構成）と `DESIGN.md`（デザインシステム）**。実装前に必ず両方を参照すること。
 
 ### 着手順（2026-07-23 決定）
 
@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 17（完了） → 18（完了） → 19（完了） → 20（完了） → 11（完了） → 12（完了） → 13（完了） → 14（完了） → 15（完了） → 16（リポジトリ側は完了）
 ```
 
-**MVP のコード作業は一巡した。** 残っているのは Vercel ダッシュボードでの設定（プロジェクト作成・env 投入・デプロイ）と、掲載交渉後の実素材投入。**手順は `docs/16-deploy-ops.md`**（セットアップ手順 / 本公開切替チェックリスト / 運用メモ）に集約してある。デザインリフレッシュ（17〜20）を管理パネルより先に終わらせた理由:
+**MVP のコード作業は一巡し、デプロイも完了した。** 残っているのは掲載交渉と、成立後の実素材投入・本公開への切替。**手順は `docs/16-deploy-ops.md`**（セットアップ手順 / 本公開切替チェックリスト / 運用メモ）に集約してある。デザインリフレッシュ（17〜20）を管理パネルより先に終わらせた理由:
 
 - **17 のタイプスケール変更は破壊的**（`display` 40→74px / `h2` 28→40px / `max-w-content` 1120→1280px）。17 より前に作った画面は作り直しになる。管理パネルはフォーム・テーブルで 10 画面以上あるため、変わると分かっているスケールの上に積まない
 - **18 は 12 より先**。18 で増える 3 カラム（`crafts.name_latin` / `craft_translations.about_heading` / `story_heading`）は管理パネルの入力欄に必要。後回しにすると 12 のフォームを二度作る
@@ -81,8 +81,15 @@ npm run lint    # ESLint
 - **Tailwind CSS は v3.4.17 に意図的にピン留め**（v4 ではない）。`tailwind.config.ts` + PostCSS 方式。v4 の CSS-first 記法（`@theme` 等）は使わない
 - **i18n**: next-intl v4 導入済み。**Supabase**: 専用プロジェクト（ref `cknlipxwpxrcbexrbjbd` / ap-northeast-1、sayo-blog とは分離）にスキーマ・RLS・Storage 構築済み。`@supabase/supabase-js` + `server-only` 導入済み
 - **`sanitize-html`** 導入済み（記事 HTML 本文のサニタイズ用。`src/lib/sanitize.ts`）
-- **Tiptap v3 導入済み**（`@tiptap/react` / `@tiptap/starter-kit` / `@tiptap/pm`・docs/12。記事本文エディタのみで使用）。**Gemini（英訳下訳）は SDK 無しの `fetch` で導入済み**（`src/lib/admin/translate/*`・docs/13・env `GEMINI_API_KEY`）。**Vercel はリポジトリ側の準備のみ完了**（`vercel.json` の Cron + `/api/keepalive`〈Supabase 無料プランの 7 日スリープ防止。env `CRON_SECRET` で認証〉・docs/16。プロジェクト作成と env 設定はダッシュボードで未実施）
+- **Tiptap v3 導入済み**（`@tiptap/react` / `@tiptap/starter-kit` / `@tiptap/pm`・docs/12。記事本文エディタのみで使用）。**Gemini（英訳下訳）は SDK 無しの `fetch` で導入済み**（`src/lib/admin/translate/*`・docs/13・env `GEMINI_API_KEY`）。**Vercel にデプロイ済み**（`vercel.json` の Cron + `/api/keepalive`〈Supabase 無料プランの 7 日スリープ防止。env `CRON_SECRET` で認証〉・docs/16）
 - `.mcp.json` と `.env.local` は認証情報を含むため gitignore 済み。コミットしない（公開クライアント用の env は `.env.example` に記載）
+
+### デプロイ環境（docs/16）
+
+- **本番 URL は `https://itoguchi-omega.vercel.app`**（独自ドメインは未取得。`itoguchi.jp` は第三者が使用中）。`main` に push すると Production デプロイが走る
+- **Vercel はこの案件専用のアカウントにある**。ローカルの `vercel` CLI は別アカウントにログインしているため **`vercel project ls` にこのプロジェクトは出てこない**（未デプロイではない）。**CLI からデプロイ・env・ログを操作しようとしないこと。** Vercel 側の操作はダッシュボードで人手で行う
+  - 認証の要らない確認（robots・sitemap・canonical・noindex・OGP 画像・`/admin` のリダイレクト・各ページの 200）は**本番 URL へ直接 curl すれば完結する**。env の値が要る確認（`CRON_SECRET` を使う `/api/keepalive` の 200 など）だけ人に依頼する
+- **コミットの author はこのリポジトリ専用の identity**（`iida-project`）。`~/.gitconfig` の `includeIf "gitdir:~/projects/work/"` でディレクトリ単位に自動切替されるので、**`git config --local user.email` を足さない**（二重管理になる）。author が個人アカウントのままだと Vercel が「is not a member of this team」警告を出す。疑わしいときは `git config user.email` で解決結果を確認する
 
 ## 実装済みの基盤（再利用する既存資産）
 
