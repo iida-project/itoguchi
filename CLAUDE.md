@@ -199,12 +199,13 @@ Next.js 15.5（本プロジェクトの採用バージョン）の公式ドキ�
 - `force-dynamic` / `revalidate = 0` は使わない（REQUIREMENTS.md §8 の方針）。cookies を読む管理パネルは自然に動的レンダリングになるので明示不要
 
 ### メタデータ / SEO（docs/14 実装済み・再利用する）
-- **SEO の面は `src/lib/seo/*`**: `config.ts`（`SITE_URL`/`SITE_PHASE`/`isIndexable`/`localePath`/`absUrl`・env `NEXT_PUBLIC_SITE_URL` / `NEXT_PUBLIC_SITE_PHASE`）/ `metadata.ts`（`alternatesFor`=canonical+hreflang(ja/en/x-default)・`openGraphFor`・`twitterFor`）/ `jsonld.ts`（`websiteJsonLd`/`organizationJsonLd`/`breadcrumbJsonLd`/`craftJsonLd`/`eventJsonLd`/`articleJsonLd`）。埋め込みは `src/components/seo/JsonLd.tsx`（`<` エスケープ）。
-- **`metadataBase` はルート `[locale]/layout.tsx`** に置き、各 `generateMetadata` は**相対**の alternates/OG を返す（Next が絶対化）。**canonical は locale 自己参照**。**robots メタは phase=preview で site-wide noindex**（layout）。WebSite+Organization JSON-LD も layout で全ページに出す。
-- **sitemap は `src/app/sitemap.ts`**（絶対 URL・`alternates.languages` に ja/en/x-default。**en は `isFallback===false` のときだけ**）。**robots は `src/app/robots.ts`**（preview=全拒否 / public=許可+sitemap）。どちらも `[locale]` の外。
+- **SEO の面は `src/lib/seo/*`**: `config.ts`（`SITE_URL`/`SITE_PHASE`/`isIndexable`/`localePath`/`absUrl`/**`siteName(locale)`**・env `NEXT_PUBLIC_SITE_URL` / `NEXT_PUBLIC_SITE_PHASE`）/ `metadata.ts`（`alternatesFor`=canonical+hreflang(ja/en/x-default)・**`translatedLocalesFrom`**・`openGraphFor`・`twitterFor`）/ `jsonld.ts`（`websiteJsonLd`/`organizationJsonLd`/`breadcrumbJsonLd`/`craftJsonLd`/`eventJsonLd`/`articleJsonLd`）。埋め込みは `src/components/seo/JsonLd.tsx`（`<` エスケープ）。
+- **`metadataBase` はルート `[locale]/layout.tsx`** に置き、各 `generateMetadata` は**相対**の alternates/OG を返す（Next が絶対化）。**robots メタは phase=preview で site-wide noindex**（layout）。WebSite+Organization JSON-LD も layout で全ページに出す。**layout のメタは静的 `metadata` ではなく `generateMetadata`**（title テンプレート `%s | いとぐち`/`| Itoguchi`・既定 description・og:site_name・JSON-LD の name を locale 別に出すため。サイト名の正本は `Site.title`(messages) と `siteName(locale)`）。
+- **EN 未訳ページの扱い（hreflang の要）**: EN 訳が未公開の詳細ページは日本語を表示する（`isFallback`）。そこに `hreflang="en"` を出すと「日本語の中身を英語版として申告」することになるので、**詳細 3 ページは `generateMetadata` で EN 版を 1 回引き**（`locale==='en'` のときは取得済みデータを再利用）、`alternatesFor(locale, path, { translatedLocales: translatedLocalesFrom(enVersion) })` を渡す。未訳なら **hreflang から en を落とし canonical を日本語版へ寄せる**。sitemap も同じルール。公開済みのときだけ canonical は locale 自己参照。
+- **sitemap は `src/app/sitemap.ts`**（絶対 URL・**言語版ごとに `<url>` を 1 つ**作り、各エントリに自分自身を含む全言語の `xhtml:link` を出す＝Google の hreflang 仕様。**en は `isFallback===false` のときだけ**）。**`revalidate=3600` の ISR**（メタデータルートは既定でビルド時固定）＋ `revalidatePublic()` が `revalidatePath('/sitemap.xml')` も叩く（`revalidatePath('/[locale]','layout')` は `[locale]` の外に波及しない）。**robots は `src/app/robots.ts`**（preview=全拒否 / public=許可+sitemap）。どちらも `[locale]` の外。
 - **root の 404 継承回避**: `localePrefix:'always'` で `/` に page が無いと robots/sitemap が 404 を継承する。**`src/app/page.tsx`（`redirect('/ja')`）と素通しの `src/app/layout.tsx`（`return children`）**で解決済み（`[locale]`・`admin` の 2 root layout はそのまま）。**この 2 ファイルは消さない**。
 - 新しい公開ページを足したら `generateMetadata` に `alternatesFor` + `openGraphFor` を、detail には該当 JSON-LD + `breadcrumbJsonLd` を付ける。sitemap の `STATIC_PATHS` にも追加する。
-- **OGP 画像は未実装**（docs/15 で写真 + JP フォント同梱の `opengraph-image` を作る）。現状は og:title/description のみ。
+- **OGP 画像は未実装**（docs/15 で写真 + JP フォント同梱の `opengraph-image` を作る）。現状は og:title/description のみで、**`twitterFor` は暫定的に `card:'summary'`**。画像を入れたら `summary_large_image` に戻す。
 
 ## アーキテクチャの要点（REQUIREMENTS.md より）
 

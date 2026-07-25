@@ -6,24 +6,40 @@ import { routing } from '@/i18n/routing';
 import { fontVariables } from '@/app/fonts';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { SITE_URL, SITE_PHASE } from '@/lib/seo/config';
+import { SITE_URL, SITE_PHASE, siteName } from '@/lib/seo/config';
 import { organizationJsonLd, websiteJsonLd } from '@/lib/seo/jsonld';
 import { JsonLd } from '@/components/seo/JsonLd';
 import '../globals.css';
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: {
-    default: 'いとぐち — 南信州の伝統工芸',
-    template: '%s | いとぐち',
-  },
-  description: '南信州（飯田・下伊那）の伝統工芸ポータル。工芸の正本ページと体験・イベントの横断カレンダー。',
-  // 交渉期間中（preview）は全ページ noindex。本公開（public）で解除。
-  ...(SITE_PHASE === 'preview' ? { robots: { index: false, follow: false } } : {}),
-  ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
-    ? { verification: { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION } }
-    : {}),
-};
+type MetadataProps = { params: Promise<{ locale: string }> };
+
+/**
+ * サイト全体の既定メタデータ。**locale ごとに解決する**ので `generateMetadata`
+ * （静的な `metadata` だと EN ページのタイトルにも `| いとぐち` が付き、既定 description も
+ * 日本語のままになる）。
+ */
+export async function generateMetadata({ params }: MetadataProps): Promise<Metadata> {
+  const { locale: raw } = await params;
+  const locale = hasLocale(routing.locales, raw) ? raw : routing.defaultLocale;
+  const [tSite, tFooter] = await Promise.all([
+    getTranslations({ locale, namespace: 'Site' }),
+    getTranslations({ locale, namespace: 'Footer' }),
+  ]);
+
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: {
+      default: tSite('title'),
+      template: `%s | ${siteName(locale)}`,
+    },
+    description: tFooter('brandLead'),
+    // 交渉期間中（preview）は全ページ noindex。本公開（public）で解除。
+    ...(SITE_PHASE === 'preview' ? { robots: { index: false, follow: false } } : {}),
+    ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+      ? { verification: { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION } }
+      : {}),
+  };
+}
 
 // ビルド時に /ja /en を静的生成する
 export function generateStaticParams() {
@@ -52,7 +68,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <html lang={locale} className={fontVariables}>
       <body className="flex min-h-screen flex-col antialiased">
-        <JsonLd data={[websiteJsonLd(locale), organizationJsonLd(t('brandLead'))]} />
+        <JsonLd data={[websiteJsonLd(locale), organizationJsonLd(locale, t('brandLead'))]} />
         <NextIntlClientProvider>
           <Header />
           <main className="flex-1">{children}</main>

@@ -28,13 +28,13 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) return {};
-  const t = await getTranslations({ locale, namespace: 'Footer' });
-  // タイトルはテンプレートの `| いとぐち` を付けないよう absolute で。
-  const title =
-    locale === 'ja'
-      ? 'いとぐち — 南信州の伝統工芸'
-      : 'Itoguchi — Traditional crafts of Minami-Shinshu';
-  const description = t('brandLead');
+  const [tSite, tFooter] = await Promise.all([
+    getTranslations({ locale, namespace: 'Site' }),
+    getTranslations({ locale, namespace: 'Footer' }),
+  ]);
+  // タイトルはテンプレートのサイト名を重ねないよう absolute で。
+  const title = tSite('title');
+  const description = tFooter('brandLead');
   return {
     title: { absolute: title },
     description,

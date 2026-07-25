@@ -1,6 +1,6 @@
 import type { Locale } from '@/i18n/routing';
 import type { CraftDetail, EventDetail, ArticleDetail } from '@/lib/data/types';
-import { SITE_URL, SITE_NAME, absUrl } from './config';
+import { SITE_URL, absUrl, siteName } from './config';
 
 /**
  * JSON-LD ビルダー（docs/14）。返り値は `@context` 付き plain object。
@@ -11,21 +11,29 @@ import { SITE_URL, SITE_NAME, absUrl } from './config';
 export type JsonLdObject = Record<string, unknown>;
 const CONTEXT = 'https://schema.org';
 
+/** サイト名は locale 側を主、もう一方を alternateName に置く（同一実体であることを示す）。 */
+function names(locale: Locale) {
+  return {
+    name: siteName(locale),
+    alternateName: siteName(locale === 'ja' ? 'en' : 'ja'),
+  };
+}
+
 export function websiteJsonLd(locale: Locale): JsonLdObject {
   return {
     '@context': CONTEXT,
     '@type': 'WebSite',
     url: SITE_URL,
-    name: SITE_NAME,
+    ...names(locale),
     inLanguage: locale === 'ja' ? 'ja-JP' : 'en-US',
   };
 }
 
-export function organizationJsonLd(description: string): JsonLdObject {
+export function organizationJsonLd(locale: Locale, description: string): JsonLdObject {
   return {
     '@context': CONTEXT,
     '@type': 'Organization',
-    name: SITE_NAME,
+    ...names(locale),
     url: SITE_URL,
     description,
     areaServed: '南信州（飯田・下伊那）',
@@ -96,7 +104,7 @@ export function eventJsonLd(event: EventDetail, locale: Locale): JsonLdObject {
 
 /** 記事 = Article。著者は無いのでサイト Organization を author/publisher に。 */
 export function articleJsonLd(article: ArticleDetail, locale: Locale): JsonLdObject {
-  const org = { '@type': 'Organization', name: SITE_NAME, url: SITE_URL };
+  const org = { '@type': 'Organization', name: siteName(locale), url: SITE_URL };
   return {
     '@context': CONTEXT,
     '@type': 'Article',

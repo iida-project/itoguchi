@@ -15,7 +15,12 @@ import { Kicker, SectionHeading } from '@/components/ui/SectionHeading';
 import { LinkButton } from '@/components/ui/LinkButton';
 import { GoogleMapLink } from '@/components/map/GoogleMapLink';
 import { EventApplyCard } from '@/components/events/EventApplyCard';
-import { alternatesFor, openGraphFor, twitterFor } from '@/lib/seo/metadata';
+import {
+  alternatesFor,
+  openGraphFor,
+  translatedLocalesFrom,
+  twitterFor,
+} from '@/lib/seo/metadata';
 import { breadcrumbJsonLd, eventJsonLd } from '@/lib/seo/jsonld';
 import { JsonLd } from '@/components/seo/JsonLd';
 
@@ -39,11 +44,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!event) return {};
   const description = event.description?.slice(0, 120) ?? undefined;
   const path = `/events/${slug}`;
+  // EN 訳が未公開なら EN ページは日本語を表示している（craft 詳細と同じ扱い）。
+  const enVersion = locale === 'en' ? event : await getEventBySlug(slug, 'en');
+  const translatedLocales = translatedLocalesFrom(enVersion);
   return {
     title: event.title,
     description,
-    alternates: alternatesFor(locale, path),
-    openGraph: openGraphFor({ locale, path, title: event.title, description }),
+    alternates: alternatesFor(locale, path, { translatedLocales }),
+    openGraph: openGraphFor({ locale, path, title: event.title, description, translatedLocales }),
     twitter: twitterFor({ title: event.title, description }),
   };
 }

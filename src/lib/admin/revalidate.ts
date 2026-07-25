@@ -11,4 +11,7 @@ import { revalidatePath } from 'next/cache';
  */
 export function revalidatePublic(): void {
   revalidatePath('/[locale]', 'layout');
+  // サイトマップは `[locale]` の外（app 直下のメタデータルート）なので上の再検証では
+  // 波及しない。工芸・イベント・記事の追加を即座に載せるため個別に再検証する（docs/14）。
+  revalidatePath('/sitemap.xml');
 }

@@ -8,7 +8,15 @@ import type { Locale } from '@/i18n/routing';
 /** サイトの絶対 URL（末尾スラッシュを除去）。canonical・sitemap・JSON-LD の基点。 */
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://itoguchi.jp').replace(/\/+$/, '');
 
-export const SITE_NAME = 'いとぐち';
+/** サイト名（locale 別）。og:site_name・title テンプレート・JSON-LD の name に使う。 */
+const SITE_NAMES: Record<string, string> = { ja: 'いとぐち', en: 'Itoguchi' };
+
+/** 日本語（正本）のサイト名。locale が分かる場所では `siteName(locale)` を使う。 */
+export const SITE_NAME = SITE_NAMES.ja;
+
+export function siteName(locale: Locale | string): string {
+  return SITE_NAMES[locale] ?? SITE_NAME;
+}
 
 /** 公開フェーズ。'preview'（交渉中・noindex）/ 'public'（本公開）。既定は安全側の preview。 */
 export const SITE_PHASE = process.env.NEXT_PUBLIC_SITE_PHASE === 'public' ? 'public' : 'preview';

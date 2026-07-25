@@ -18,7 +18,12 @@ import { GoogleMapLink } from '@/components/map/GoogleMapLink';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { QuoteBox } from '@/components/ui/QuoteBox';
 import { Reveal } from '@/components/ui/Reveal';
-import { alternatesFor, openGraphFor, twitterFor } from '@/lib/seo/metadata';
+import {
+  alternatesFor,
+  openGraphFor,
+  translatedLocalesFrom,
+  twitterFor,
+} from '@/lib/seo/metadata';
 import { breadcrumbJsonLd, craftJsonLd } from '@/lib/seo/jsonld';
 import { JsonLd } from '@/components/seo/JsonLd';
 
@@ -43,11 +48,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!craft) return {};
   const description = craft.tagline ?? craft.overview?.slice(0, 120) ?? undefined;
   const path = `/crafts/${slug}`;
+  // EN 訳が未公開なら EN ページは日本語を表示している。hreflang=en を出さず canonical も
+  // 日本語へ寄せる（サイトマップの isFallback ルールと揃える）。
+  const enVersion = locale === 'en' ? craft : await getCraftBySlug(slug, 'en');
+  const translatedLocales = translatedLocalesFrom(enVersion);
   return {
     title: craft.name,
     description,
-    alternates: alternatesFor(locale, path),
-    openGraph: openGraphFor({ locale, path, title: craft.name, description }),
+    alternates: alternatesFor(locale, path, { translatedLocales }),
+    openGraph: openGraphFor({ locale, path, title: craft.name, description, translatedLocales }),
     twitter: twitterFor({ title: craft.name, description }),
   };
 }

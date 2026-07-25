@@ -23,6 +23,8 @@
 - [ ] noindex + robots 全拒否の設定確認（14 と連動）
 - [ ] 交渉用確認チェックリストの自動生成（is_provisional 項目の一覧出力）
 - [ ] プレビュー URL（Vercel）で共有できる状態にする
+- [ ] **OGP 画像テンプレート（docs/14 からの送り）** — 工芸名 + 写真 + 糸モチーフ。`opengraph-image` に JP フォントを同梱する
+- [ ] **OGP 画像を入れたら `src/lib/seo/metadata.ts` の `twitterFor` を `summary` → `summary_large_image` に戻す**（画像が無いあいだ大画像カードを宣言しても実態と食い違うため暫定で落としてある）
 
 ## 交渉時の確認チェックリスト（テンプレート）
 

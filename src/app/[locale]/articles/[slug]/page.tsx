@@ -11,7 +11,12 @@ import { JapaneseOnlyBanner } from '@/components/layout/JapaneseOnlyBanner';
 import { Band } from '@/components/layout/Band';
 import { Kicker, SectionHeading } from '@/components/ui/SectionHeading';
 import { LinkButton } from '@/components/ui/LinkButton';
-import { alternatesFor, openGraphFor, twitterFor } from '@/lib/seo/metadata';
+import {
+  alternatesFor,
+  openGraphFor,
+  translatedLocalesFrom,
+  twitterFor,
+} from '@/lib/seo/metadata';
 import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo/jsonld';
 import { JsonLd } from '@/components/seo/JsonLd';
 
@@ -34,10 +39,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!article) return {};
   const description = article.excerpt ?? undefined;
   const path = `/articles/${slug}`;
+  // EN 訳が未公開なら EN ページは日本語を表示している（craft 詳細と同じ扱い）。
+  const enVersion = locale === 'en' ? article : await getArticleBySlug(slug, 'en');
+  const translatedLocales = translatedLocalesFrom(enVersion);
   return {
     title: article.title,
     description,
-    alternates: alternatesFor(locale, path),
+    alternates: alternatesFor(locale, path, { translatedLocales }),
     openGraph: openGraphFor({
       locale,
       path,
@@ -45,6 +53,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       type: 'article',
       publishedTime: article.publishedAt,
+      translatedLocales,
     }),
     twitter: twitterFor({ title: article.title, description }),
   };
