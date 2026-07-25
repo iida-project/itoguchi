@@ -42,4 +42,4 @@
 - **Server Action の自衛が必須**: middleware と `(panel)` layout は「描画・遷移の楽観ガード」に過ぎない。docs/12 で追加する**更新系 Server Action は各アクション先頭で必ず `requireAuth()` を呼ぶ**こと。service-role 書き込みも必ずその内側。
 - **placeholder は docs/12 で差し替え**: `(panel)/{crafts,articles,experiences,events,groups,spots,glossary,images}/page.tsx` は `ComingSoon` を出すだけ。docs/12 で本実装に置換する。
 - **静的 `admin` が動的 `[locale]` より優先**されるので `/admin` が `locale="admin"` に化けることはない（Next の route 解決順）。
-- **dev 認証情報**: `.env.local` に `ADMIN_PASSWORD=itoguchi-admin-dev` と生成済み `ADMIN_SESSION_SECRET` を追記済み（本番は要変更）。`SUPABASE_SERVICE_ROLE_KEY` は画像アップロード用で完了条件には不要（入れれば `uploadImage` が動く）。
+- **dev 認証情報**: `.env.local` に `ADMIN_PASSWORD` と `ADMIN_SESSION_SECRET`（`openssl rand -hex 32`）を設定済み（本番は要変更）。**このリポジトリは public なので、値そのものはコミットするファイルに書かない**（枠は `.env.example` にある）。`SUPABASE_SERVICE_ROLE_KEY` は画像アップロード用で完了条件には不要（入れれば `uploadImage` が動く）。
