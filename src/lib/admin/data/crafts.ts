@@ -31,6 +31,24 @@ export async function listCrafts(): Promise<CraftListItem[]> {
   return (data ?? []) as unknown as CraftListItem[];
 }
 
+export type CraftStepListItem = CraftStepRow & { translations: CraftStepTranslationRow[] };
+
+/**
+ * 工程の横断一覧（`/admin/provisional` 用）。
+ * 工程は工芸編集ページの中で編集するので専用の一覧ページは持たないが、
+ * 仮情報のチェックだけは工芸をまたいで見たいのでここに置く。
+ */
+export async function listCraftSteps(): Promise<CraftStepListItem[]> {
+  const supabase = createAdminSupabaseClient();
+  const { data, error } = await supabase
+    .from('craft_steps')
+    .select('*, translations:craft_step_translations(*)')
+    .order('craft_id', { ascending: true })
+    .order('position', { ascending: true });
+  if (error) throw new Error(`listCraftSteps failed: ${error.message}`);
+  return (data ?? []) as unknown as CraftStepListItem[];
+}
+
 type CraftEditRow = CraftRow & {
   translations: CraftTranslationRow[];
   craft_steps: Array<CraftStepRow & { step_translations: CraftStepTranslationRow[] }>;

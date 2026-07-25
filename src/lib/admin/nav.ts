@@ -2,7 +2,12 @@
  * 管理パネルのサイドナビ項目の単一情報源（docs/11）。
  * サイドナビと「準備中」プレースホルダページ生成が共有する。各ページの中身は docs/12 で実装する。
  */
-export type AdminNavItem = { href: string; label: string };
+export type AdminNavItem = {
+  href: string;
+  label: string;
+  /** ダッシュボードのカード説明。CRUD 以外のページで既定文言と実態がズレるのを防ぐ */
+  description?: string;
+};
 
 export const adminNavItems: AdminNavItem[] = [
   { href: '/admin/crafts', label: '工芸' },
@@ -12,5 +17,10 @@ export const adminNavItems: AdminNavItem[] = [
   { href: '/admin/groups', label: '担い手' },
   { href: '/admin/spots', label: 'スポット' },
   { href: '/admin/glossary', label: '用語集' },
-  { href: '/admin/images', label: '画像' },
+  { href: '/admin/images', label: '画像', description: 'アップロード済み画像の URL 一覧' },
+  {
+    href: '/admin/provisional',
+    label: '交渉チェック',
+    description: '「※確認中」項目の一覧と確認事項',
+  },
 ];

@@ -19,10 +19,10 @@
 - [ ] 遠山ふじ糸: 工芸データ一式（概要 / 歴史・藤姫物語 / 工程 / 担い手 / 体験 / スポット）を公開情報から作成
 - [ ] 阿島傘: 同上
 - [ ] 体験・イベントのシード（推測箇所はすべて is_provisional）
-- [ ] プレースホルダー画像コンポーネント（「あなたの写真でここが完成します」提案として機能する見た目）
-- [ ] noindex + robots 全拒否の設定確認（14 と連動）
-- [ ] 交渉用確認チェックリストの自動生成（is_provisional 項目の一覧出力）
-- [ ] プレビュー URL（Vercel）で共有できる状態にする
+- [x] プレースホルダー画像コンポーネント（「あなたの写真でここが完成します」提案として機能する見た目）
+- [x] noindex + robots 全拒否の設定確認（14 と連動）→ robots.txt=`Disallow: /`・公開ページと `/admin` の全てに `noindex, nofollow` を curl で確認
+- [x] 交渉用確認チェックリストの自動生成（is_provisional 項目の一覧出力）→ `/admin/provisional`
+- [ ] ~~プレビュー URL（Vercel）で共有できる状態にする~~ → **docs/16 へ送る**（デプロイ基盤が前提。`NEXT_PUBLIC_SITE_URL` の環境別設定も 16 で）
 - [ ] **OGP 画像テンプレート（docs/14 からの送り）** — 工芸名 + 写真 + 糸モチーフ。`opengraph-image` に JP フォントを同梱する
 - [ ] **OGP 画像を入れたら `src/lib/seo/metadata.ts` の `twitterFor` を `summary` → `summary_large_image` に戻す**（画像が無いあいだ大画像カードを宣言しても実態と食い違うため暫定で落としてある）
 

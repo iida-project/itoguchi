@@ -18,7 +18,9 @@ export default function AdminDashboardPage() {
             className="rounded-lg border border-border bg-surface p-5 transition-shadow hover:shadow-card"
           >
             <p className="font-jp text-h4 text-foreground">{item.label}</p>
-            <p className="mt-1 text-caption text-muted">一覧・作成・編集</p>
+            <p className="mt-1 text-caption text-muted">
+              {item.description ?? '一覧・作成・編集'}
+            </p>
           </Link>
         ))}
       </div>
