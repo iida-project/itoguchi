@@ -14,6 +14,9 @@ import { MonthGroup } from '@/components/events/MonthGroup';
 import { ExperienceCard } from '@/components/experiences/ExperienceCard';
 import { EventsView } from '@/components/events/EventsView';
 import type { EventCalendarItem } from '@/components/events/MonthCalendar';
+import { alternatesFor, openGraphFor, twitterFor } from '@/lib/seo/metadata';
+import { breadcrumbJsonLd } from '@/lib/seo/jsonld';
+import { JsonLd } from '@/components/seo/JsonLd';
 
 // カレンダー/一覧は日次更新で十分（ISR。切替・絞り込みはクライアント側＝静的維持）
 export const revalidate = 3600;
@@ -26,7 +29,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) return {};
   const t = await getTranslations({ locale, namespace: 'Events' });
-  return { title: t('listTitle') };
+  return {
+    title: t('listTitle'),
+    alternates: alternatesFor(locale, '/events'),
+    openGraph: openGraphFor({ locale, path: '/events', title: t('listTitle') }),
+    twitter: twitterFor({ title: t('listTitle') }),
+  };
 }
 
 /**
@@ -42,8 +50,9 @@ export default async function EventsPage({ params }: Props) {
   }
   setRequestLocale(locale);
 
-  const [t, events, crafts, experiences] = await Promise.all([
+  const [t, tNav, events, crafts, experiences] = await Promise.all([
     getTranslations('Events'),
+    getTranslations('Nav'),
     getEvents(locale as Locale),
     getCrafts(locale as Locale),
     getExperiences(locale as Locale),
@@ -81,6 +90,12 @@ export default async function EventsPage({ params }: Props) {
 
   return (
     <div className="pat-asanoha-soft">
+      <JsonLd
+        data={breadcrumbJsonLd(locale as Locale, [
+          { name: tNav('home'), path: '' },
+          { name: t('listTitle'), path: '/events' },
+        ])}
+      />
       <div className="mx-auto max-w-wide px-6 pb-section-sm pt-14 md:px-12 md:pb-section md:pt-20">
         <PageHero
           kicker={t('heroKicker')}

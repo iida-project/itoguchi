@@ -12,6 +12,9 @@ import { LinkButton } from '@/components/ui/LinkButton';
 import { Reveal } from '@/components/ui/Reveal';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Stat } from '@/components/ui/Stat';
+import { alternatesFor, openGraphFor, twitterFor } from '@/lib/seo/metadata';
+import { breadcrumbJsonLd } from '@/lib/seo/jsonld';
+import { JsonLd } from '@/components/seo/JsonLd';
 
 // 工芸一覧は ISR（工芸詳細と同じく 1 時間）
 export const revalidate = 3600;
@@ -24,7 +27,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) return {};
   const t = await getTranslations({ locale, namespace: 'Crafts' });
-  return { title: t('listTitle'), description: t('listLead') };
+  return {
+    title: t('listTitle'),
+    description: t('listLead'),
+    alternates: alternatesFor(locale, '/crafts'),
+    openGraph: openGraphFor({ locale, path: '/crafts', title: t('listTitle'), description: t('listLead') }),
+    twitter: twitterFor({ title: t('listTitle'), description: t('listLead') }),
+  };
 }
 
 /**
@@ -41,9 +50,10 @@ export default async function CraftsPage({ params }: Props) {
   }
   setRequestLocale(locale);
 
-  const [t, tCommon, crafts, stats] = await Promise.all([
+  const [t, tCommon, tNav, crafts, stats] = await Promise.all([
     getTranslations('Crafts'),
     getTranslations('Common'),
+    getTranslations('Nav'),
     getCrafts(locale as Locale),
     getSiteStats(locale as Locale),
   ]);
@@ -53,6 +63,12 @@ export default async function CraftsPage({ params }: Props) {
 
   return (
     <>
+      <JsonLd
+        data={breadcrumbJsonLd(locale as Locale, [
+          { name: tNav('home'), path: '' },
+          { name: t('listTitle'), path: '/crafts' },
+        ])}
+      />
       {/* 面 1: Hero + スタッツ帯（§6「display-xl + スタッツ帯」。帯はホーム #2 と同じ型） */}
       <Band padding="none">
         <div className="pt-14 md:pt-20">

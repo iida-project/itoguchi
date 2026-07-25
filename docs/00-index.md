@@ -17,7 +17,7 @@
 | 11 | [管理パネル: 認証・基盤](11-admin-foundation.md) | 03 | 完了 |
 | 12 | [管理パネル: CRUD](12-admin-crud.md) | 11 | 完了 |
 | 13 | [AI 英訳パイプライン](13-translation-pipeline.md) | 12 | 完了 |
-| 14 | [SEO / AIO](14-seo-aio.md) | 05〜09 | 未着手 |
+| 14 | [SEO / AIO](14-seo-aio.md) | 05〜09 | 完了（OGP 画像のみ docs/15） |
 | 15 | [シードコンテンツ（交渉用デモ）](15-seed-content.md) | 06, 07, 08 | 未着手 |
 | 16 | [デプロイ・運用](16-deploy-ops.md) | 全体 | 未着手 |
 

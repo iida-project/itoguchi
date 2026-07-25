@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { routing } from '@/i18n/routing';
 import { Band } from '@/components/layout/Band';
 import { Kicker } from '@/components/ui/SectionHeading';
+import { alternatesFor, openGraphFor, twitterFor } from '@/lib/seo/metadata';
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -14,7 +15,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) return {};
   const t = await getTranslations({ locale, namespace: 'Privacy' });
-  return { title: t('title'), description: t('intro') };
+  return {
+    title: t('title'),
+    description: t('intro'),
+    alternates: alternatesFor(locale, '/privacy'),
+    openGraph: openGraphFor({ locale, path: '/privacy', title: t('title'), description: t('intro') }),
+    twitter: twitterFor({ title: t('title'), description: t('intro') }),
+  };
 }
 
 /**

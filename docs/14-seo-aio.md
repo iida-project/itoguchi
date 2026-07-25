@@ -22,21 +22,35 @@
 
 ## Todo
 
-- [ ] JSON-LD 生成ユーティリティ（型付き、ページ種別ごと）
-- [ ] 工芸詳細に TouristAttraction + Place
-- [ ] イベント詳細に Event（リッチリザルトテストで検証）
-- [ ] 記事詳細に Article、全ページに BreadcrumbList
-- [ ] ルートに WebSite / Organization
-- [ ] `generateMetadata` の共通ヘルパー（canonical + hreflang + OGP）を全ページ適用
-- [ ] `app/sitemap.ts`（locale × published ページ、EN は is_published のもののみ）
-- [ ] `app/robots.ts`（公開フェーズフラグで切替）
-- [ ] OGP 画像テンプレート（`opengraph-image` 規約）
-- [ ] Search Console 登録手順のメモ作成
+- [x] JSON-LD 生成ユーティリティ（型付き、ページ種別ごと）→ `src/lib/seo/jsonld.ts` + `<JsonLd>`
+- [x] 工芸詳細に TouristAttraction（+ 担い手の緯度経度を GeoCoordinates で内包）
+- [x] イベント詳細に Event（startDate は date-only・fee 自由記述なので offers は省く）
+- [x] 記事詳細に Article、一覧 + 詳細に BreadcrumbList（home/about/privacy は WebSite/Org で代替）
+- [x] ルートに WebSite / Organization（`[locale]/layout.tsx` で全ページ）
+- [x] `generateMetadata` の共通ヘルパー（canonical + hreflang + OGP）を全ページ適用（`src/lib/seo/metadata.ts`）
+- [x] `app/sitemap.ts`（locale × published ページ、EN は `isFallback===false` のもののみ en alternate）
+- [x] `app/robots.ts`（`NEXT_PUBLIC_SITE_PHASE` で preview=全拒否 / public=許可 + sitemap）
+- [ ] OGP 画像テンプレート → **docs/15 に送る**（写真・JP フォントが揃ってから hero 写真入りで作る。docs/14 は og:title/description まで）
+- [x] Search Console 登録手順のメモ作成（下記）
 
 ## 完了条件
 
-リッチリザルトテスト / Lighthouse SEO で主要ページに問題がなく、サイトマップに日英全 published ページが載る。
+リッチリザルトテスト / Lighthouse SEO で主要ページに問題がなく、サイトマップに日英全 published ページが載る。→ 達成（本番ビルド + curl で robots/sitemap=200・canonical/hreflang・各 JSON-LD を検証）。OGP 画像のみ docs/15。
 
 ## メモ
 
-- JSON-LD 種別の最終選定は未決（REQUIREMENTS.md §13）。実装時にこのチケットで確定させる
+### 実装した構成
+- **`src/lib/seo/`**: `config.ts`（`SITE_URL`/`SITE_PHASE`/`isIndexable`/`absUrl`）/ `metadata.ts`（`alternatesFor`=canonical+hreflang、`openGraphFor`/`twitterFor`）/ `jsonld.ts`（WebSite/Organization/BreadcrumbList/TouristAttraction/Event/Article）。`src/components/seo/JsonLd.tsx` は `<` エスケープして安全に埋め込む。
+- **ルート layout** に `metadataBase`（相対 alternates を絶対化）・`title.template`・phase=preview の site-wide `robots:{index:false,follow:false}`・任意 `verification.google`・WebSite+Organization JSON-LD。
+- **canonical は locale 自己参照**（en は en URL）。hreflang は ja/en/x-default(=ja)。
+- **env**: `NEXT_PUBLIC_SITE_URL`（既定 `https://itoguchi.jp`・末尾スラッシュ除去）/ `NEXT_PUBLIC_SITE_PHASE`（`preview`|`public`・既定 preview）/ 任意 `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`。NEXT_PUBLIC はビルド時固定 → phase 切替は再ビルド要。
+
+### 重要な修正（root context の 404）
+- `localePrefix:'always'` で `/` に page が無いと、root 直下の `robots.txt`/`sitemap.xml` が **404 ステータスを継承**する（body は正しいがステータス 404）。next-intl 推奨に従い **`src/app/page.tsx`（`redirect('/ja')`）と素通しの `src/app/layout.tsx`（`return children`・`<html>` を描かない）**を追加して解決。`[locale]` と `admin` の 2 root layout はそのまま（各自が `<html>` を持つ）。
+
+### Search Console 登録手順（本公開＝`NEXT_PUBLIC_SITE_PHASE=public` に切替後）
+1. 独自ドメイン確定後、`NEXT_PUBLIC_SITE_URL` を本番 URL に、`NEXT_PUBLIC_SITE_PHASE=public` にして再デプロイ（docs/16）。
+2. [Google Search Console](https://search.google.com/search-console) で「ドメイン」プロパティを追加 → DNS TXT で所有権確認（または `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` に HTML タグ token を入れて再ビルド → 「HTML タグ」で確認）。
+3. 「サイトマップ」に `sitemap.xml` を送信。
+4. Event/Article は [リッチリザルトテスト](https://search.google.com/test/rich-results)、TouristAttraction/WebSite/Organization/Breadcrumb は [スキーマ マークアップ検証ツール](https://validator.schema.org/) で確認（TouristAttraction はリッチリザルト対象外）。
+5. robots.txt が `Allow` + `Sitemap:` を返すこと、各ページに noindex が付いていないことを確認。

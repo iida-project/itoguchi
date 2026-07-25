@@ -1,7 +1,9 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { hasLocale } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { routing, type Locale } from '@/i18n/routing';
+import { alternatesFor, openGraphFor, twitterFor } from '@/lib/seo/metadata';
 import { Link } from '@/i18n/navigation';
 import { getHomeData } from '@/lib/data';
 import { craftNumberMap } from '@/lib/craftNumber';
@@ -22,6 +24,25 @@ export const revalidate = 86400;
 type Props = {
   params: Promise<{ locale: string }>;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  if (!hasLocale(routing.locales, locale)) return {};
+  const t = await getTranslations({ locale, namespace: 'Footer' });
+  // タイトルはテンプレートの `| いとぐち` を付けないよう absolute で。
+  const title =
+    locale === 'ja'
+      ? 'いとぐち — 南信州の伝統工芸'
+      : 'Itoguchi — Traditional crafts of Minami-Shinshu';
+  const description = t('brandLead');
+  return {
+    title: { absolute: title },
+    description,
+    alternates: alternatesFor(locale, ''),
+    openGraph: openGraphFor({ locale, path: '', title, description }),
+    twitter: twitterFor({ title, description }),
+  };
+}
 
 /**
  * ホーム（DESIGN.md §6）。面の順序は 1 → 1 → 1 → 2 → 3 → 1 → 4（フッター）。

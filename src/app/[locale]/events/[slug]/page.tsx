@@ -15,6 +15,9 @@ import { Kicker, SectionHeading } from '@/components/ui/SectionHeading';
 import { LinkButton } from '@/components/ui/LinkButton';
 import { GoogleMapLink } from '@/components/map/GoogleMapLink';
 import { EventApplyCard } from '@/components/events/EventApplyCard';
+import { alternatesFor, openGraphFor, twitterFor } from '@/lib/seo/metadata';
+import { breadcrumbJsonLd, eventJsonLd } from '@/lib/seo/jsonld';
+import { JsonLd } from '@/components/seo/JsonLd';
 
 export const revalidate = 3600;
 export const dynamicParams = true;
@@ -34,9 +37,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!hasLocale(routing.locales, locale)) return {};
   const event = await getEventBySlug(slug, locale);
   if (!event) return {};
+  const description = event.description?.slice(0, 120) ?? undefined;
+  const path = `/events/${slug}`;
   return {
     title: event.title,
-    description: event.description?.slice(0, 120) ?? undefined,
+    description,
+    alternates: alternatesFor(locale, path),
+    openGraph: openGraphFor({ locale, path, title: event.title, description }),
+    twitter: twitterFor({ title: event.title, description }),
   };
 }
 
@@ -79,6 +87,16 @@ export default async function EventDetailPage({ params }: Props) {
 
   return (
     <>
+      <JsonLd
+        data={[
+          eventJsonLd(event, locale as Locale),
+          breadcrumbJsonLd(locale as Locale, [
+            { name: tNav('home'), path: '' },
+            { name: t('listTitle'), path: '/events' },
+            { name: event.title, path: `/events/${event.slug}` },
+          ]),
+        ]}
+      />
       {/* EN 未訳（ja フォールバック）でこのページに来た場合のみバナー */}
       {locale === 'en' && event.isFallback && <JapaneseOnlyBanner />}
 

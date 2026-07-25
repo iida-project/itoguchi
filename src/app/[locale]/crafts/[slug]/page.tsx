@@ -18,6 +18,9 @@ import { GoogleMapLink } from '@/components/map/GoogleMapLink';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { QuoteBox } from '@/components/ui/QuoteBox';
 import { Reveal } from '@/components/ui/Reveal';
+import { alternatesFor, openGraphFor, twitterFor } from '@/lib/seo/metadata';
+import { breadcrumbJsonLd, craftJsonLd } from '@/lib/seo/jsonld';
+import { JsonLd } from '@/components/seo/JsonLd';
 
 // 工芸詳細は ISR（CLAUDE.md の方針: revalidate=3600、未生成 slug はオンデマンド生成）
 export const revalidate = 3600;
@@ -38,9 +41,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!hasLocale(routing.locales, locale)) return {};
   const craft = await getCraftBySlug(slug, locale);
   if (!craft) return {};
+  const description = craft.tagline ?? craft.overview?.slice(0, 120) ?? undefined;
+  const path = `/crafts/${slug}`;
   return {
     title: craft.name,
-    description: craft.tagline ?? craft.overview?.slice(0, 120) ?? undefined,
+    description,
+    alternates: alternatesFor(locale, path),
+    openGraph: openGraphFor({ locale, path, title: craft.name, description }),
+    twitter: twitterFor({ title: craft.name, description }),
   };
 }
 
@@ -113,6 +121,16 @@ export default async function CraftDetailPage({ params }: Props) {
 
   return (
     <>
+      <JsonLd
+        data={[
+          craftJsonLd(craft, locale as Locale),
+          breadcrumbJsonLd(locale as Locale, [
+            { name: tNav('home'), path: '' },
+            { name: t('listTitle'), path: '/crafts' },
+            { name: craft.name, path: `/crafts/${craft.slug}` },
+          ]),
+        ]}
+      />
       {/* EN 未訳（ja フォールバック）でこのページに来た場合のみバナー */}
       {locale === 'en' && craft.isFallback && <JapaneseOnlyBanner />}
 

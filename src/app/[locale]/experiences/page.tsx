@@ -16,6 +16,9 @@ import {
 import { LinkButton } from '@/components/ui/LinkButton';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Stat } from '@/components/ui/Stat';
+import { alternatesFor, openGraphFor, twitterFor } from '@/lib/seo/metadata';
+import { breadcrumbJsonLd } from '@/lib/seo/jsonld';
+import { JsonLd } from '@/components/seo/JsonLd';
 
 // 体験一覧は ISR（searchParams はサーバーで読まず、フィルタはクライアント側＝静的維持）
 export const revalidate = 3600;
@@ -28,7 +31,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) return {};
   const t = await getTranslations({ locale, namespace: 'Experiences' });
-  return { title: t('title'), description: t('lead') };
+  return {
+    title: t('title'),
+    description: t('lead'),
+    alternates: alternatesFor(locale, '/experiences'),
+    openGraph: openGraphFor({ locale, path: '/experiences', title: t('title'), description: t('lead') }),
+    twitter: twitterFor({ title: t('title'), description: t('lead') }),
+  };
 }
 
 /**
@@ -45,9 +54,10 @@ export default async function ExperiencesPage({ params }: Props) {
   }
   setRequestLocale(locale);
 
-  const [t, tCommon, experiences, stats] = await Promise.all([
+  const [t, tCommon, tNav, experiences, stats] = await Promise.all([
     getTranslations('Experiences'),
     getTranslations('Common'),
+    getTranslations('Nav'),
     getExperiences(locale as Locale),
     getSiteStats(locale as Locale),
   ]);
@@ -76,6 +86,12 @@ export default async function ExperiencesPage({ params }: Props) {
 
   return (
     <>
+      <JsonLd
+        data={breadcrumbJsonLd(locale as Locale, [
+          { name: tNav('home'), path: '' },
+          { name: t('title'), path: '/experiences' },
+        ])}
+      />
       {/* 面 1: Hero + スタッツ帯 */}
       <Band padding="none">
         <div className="pt-14 md:pt-20">

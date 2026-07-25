@@ -11,6 +11,9 @@ import { JapaneseOnlyBanner } from '@/components/layout/JapaneseOnlyBanner';
 import { Band } from '@/components/layout/Band';
 import { Kicker, SectionHeading } from '@/components/ui/SectionHeading';
 import { LinkButton } from '@/components/ui/LinkButton';
+import { alternatesFor, openGraphFor, twitterFor } from '@/lib/seo/metadata';
+import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo/jsonld';
+import { JsonLd } from '@/components/seo/JsonLd';
 
 export const revalidate = 3600;
 export const dynamicParams = true;
@@ -29,9 +32,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!hasLocale(routing.locales, locale)) return {};
   const article = await getArticleBySlug(slug, locale);
   if (!article) return {};
+  const description = article.excerpt ?? undefined;
+  const path = `/articles/${slug}`;
   return {
     title: article.title,
-    description: article.excerpt ?? undefined,
+    description,
+    alternates: alternatesFor(locale, path),
+    openGraph: openGraphFor({
+      locale,
+      path,
+      title: article.title,
+      description,
+      type: 'article',
+      publishedTime: article.publishedAt,
+    }),
+    twitter: twitterFor({ title: article.title, description }),
   };
 }
 
@@ -49,9 +64,10 @@ export default async function ArticleDetailPage({ params }: Props) {
   }
   setRequestLocale(locale);
 
-  const [t, tCommon, article, crafts] = await Promise.all([
+  const [t, tCommon, tNav, article, crafts] = await Promise.all([
     getTranslations('Articles'),
     getTranslations('Common'),
+    getTranslations('Nav'),
     getArticleBySlug(slug, locale as Locale),
     getCrafts(locale as Locale),
   ]);
@@ -74,6 +90,16 @@ export default async function ArticleDetailPage({ params }: Props) {
 
   return (
     <>
+      <JsonLd
+        data={[
+          articleJsonLd(article, locale as Locale),
+          breadcrumbJsonLd(locale as Locale, [
+            { name: tNav('home'), path: '' },
+            { name: t('listTitle'), path: '/articles' },
+            { name: article.title, path: `/articles/${article.slug}` },
+          ]),
+        ]}
+      />
       {locale === 'en' && article.isFallback && <JapaneseOnlyBanner />}
 
       <article>

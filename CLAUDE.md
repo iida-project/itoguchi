@@ -6,15 +6,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **いとぐち（Itoguchi）** — 南信州（飯田・下伊那）の伝統工芸ポータル。工芸単位の「正本ページ」と体験・イベントの横断カレンダーで「体験したい人への案内係」を務めるサイト。日英 2 言語。Sayo's Journal の技術構成・設計資産を流用した横展開第 1 号。
 
-基盤チケット（docs/01〜04）と公開ページ（docs/05〜10: ホーム / 工芸一覧・詳細 / 体験一覧 / イベントカレンダー・詳細 / 記事一覧・詳細 / About・Privacy）、**デザインリフレッシュ（docs/17〜20）は実装済み**（公開 10 画面すべてが v0.2）。未着手は管理パネル・翻訳（docs/11〜13）、SEO/AIO（docs/14）、シード本番化（docs/15）、デプロイ（docs/16）。最新の進捗は `docs/00-index.md` の状態欄を参照。**仕様の正本は `REQUIREMENTS.md`（要件・データモデル・画面構成）と `DESIGN.md`（デザインシステム）**。実装前に必ず両方を参照すること。
+基盤チケット（docs/01〜04）と公開ページ（docs/05〜10: ホーム / 工芸一覧・詳細 / 体験一覧 / イベントカレンダー・詳細 / 記事一覧・詳細 / About・Privacy）、**デザインリフレッシュ（docs/17〜20）・管理パネル（docs/11〜12）・AI 英訳（docs/13）・SEO/AIO（docs/14）は実装済み**（公開 10 画面すべて v0.2）。**未着手は docs/15（シード本番化・OGP 画像・掲載交渉後の実素材投入）、docs/16（デプロイ・運用）のみ。** 最新の進捗は `docs/00-index.md` の状態欄を参照。**仕様の正本は `REQUIREMENTS.md`（要件・データモデル・画面構成）と `DESIGN.md`（デザインシステム）**。実装前に必ず両方を参照すること。
 
 ### 着手順（2026-07-23 決定）
 
 ```
-17（完了） → 18（完了） → 19（完了） → 20（完了） → 11（完了） → 12（完了） → 13（完了） → 14 → 15 → 16
+17（完了） → 18（完了） → 19（完了） → 20（完了） → 11（完了） → 12（完了） → 13（完了） → 14（完了） → 15 → 16
 ```
 
-**次に着手するのは docs/14（SEO / AIO）。** docs/11（認証・基盤）・docs/12（CRUD）・docs/13（AI 英訳）は完了。デザインリフレッシュ（17〜20）を管理パネルより先に終わらせた理由:
+**次に着手するのは docs/15（シード本番化）。** docs/11〜14 は完了（14 は OGP 画像のみ docs/15 に送り）。デザインリフレッシュ（17〜20）を管理パネルより先に終わらせた理由:
 
 - **17 のタイプスケール変更は破壊的**（`display` 40→74px / `h2` 28→40px / `max-w-content` 1120→1280px）。17 より前に作った画面は作り直しになる。管理パネルはフォーム・テーブルで 10 画面以上あるため、変わると分かっているスケールの上に積まない
 - **18 は 12 より先**。18 で増える 3 カラム（`crafts.name_latin` / `craft_translations.about_heading` / `story_heading`）は管理パネルの入力欄に必要。後回しにすると 12 のフォームを二度作る
@@ -198,18 +198,13 @@ Next.js 15.5（本プロジェクトの採用バージョン）の公式ドキ�
 - ルート内の最小の `revalidate` 値がそのルート全体の再検証頻度になる点に注意（layout に短い値を置かない）
 - `force-dynamic` / `revalidate = 0` は使わない（REQUIREMENTS.md §8 の方針）。cookies を読む管理パネルは自然に動的レンダリングになるので明示不要
 
-### メタデータ / SEO
-> **現状（重要）**: 公開ページの `generateMetadata` は `title`（＋一部 `description`）のみ実装。以下の canonical/hreflang・動的サイトマップ・JSON-LD・robots・OGP は **未実装で docs/14（SEO/AIO）の担当**。イベント詳細等はその下地となるデータを既に持たせてある。
-- 各ページで `generateMetadata` を使い、`alternates` で canonical と hreflang を出力:
-  ```tsx
-  alternates: {
-    canonical: `${BASE_URL}/ja/crafts/${slug}`,
-    languages: { ja: `${BASE_URL}/ja/...`, en: `${BASE_URL}/en/...`, 'x-default': `${BASE_URL}/ja/...` },
-  }
-  ```
-- サイトマップは `app/sitemap.ts`（`MetadataRoute.Sitemap`）で動的生成し、各エントリの `alternates.languages` に locale 別 URL を入れる
-- JSON-LD は該当ページの Server Component 内で `<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />` として埋め込む（Event / TouristAttraction / Article 等）
-- robots は `app/robots.ts`、OGP 画像は `opengraph-image` ファイル規約を使う
+### メタデータ / SEO（docs/14 実装済み・再利用する）
+- **SEO の面は `src/lib/seo/*`**: `config.ts`（`SITE_URL`/`SITE_PHASE`/`isIndexable`/`localePath`/`absUrl`・env `NEXT_PUBLIC_SITE_URL` / `NEXT_PUBLIC_SITE_PHASE`）/ `metadata.ts`（`alternatesFor`=canonical+hreflang(ja/en/x-default)・`openGraphFor`・`twitterFor`）/ `jsonld.ts`（`websiteJsonLd`/`organizationJsonLd`/`breadcrumbJsonLd`/`craftJsonLd`/`eventJsonLd`/`articleJsonLd`）。埋め込みは `src/components/seo/JsonLd.tsx`（`<` エスケープ）。
+- **`metadataBase` はルート `[locale]/layout.tsx`** に置き、各 `generateMetadata` は**相対**の alternates/OG を返す（Next が絶対化）。**canonical は locale 自己参照**。**robots メタは phase=preview で site-wide noindex**（layout）。WebSite+Organization JSON-LD も layout で全ページに出す。
+- **sitemap は `src/app/sitemap.ts`**（絶対 URL・`alternates.languages` に ja/en/x-default。**en は `isFallback===false` のときだけ**）。**robots は `src/app/robots.ts`**（preview=全拒否 / public=許可+sitemap）。どちらも `[locale]` の外。
+- **root の 404 継承回避**: `localePrefix:'always'` で `/` に page が無いと robots/sitemap が 404 を継承する。**`src/app/page.tsx`（`redirect('/ja')`）と素通しの `src/app/layout.tsx`（`return children`）**で解決済み（`[locale]`・`admin` の 2 root layout はそのまま）。**この 2 ファイルは消さない**。
+- 新しい公開ページを足したら `generateMetadata` に `alternatesFor` + `openGraphFor` を、detail には該当 JSON-LD + `breadcrumbJsonLd` を付ける。sitemap の `STATIC_PATHS` にも追加する。
+- **OGP 画像は未実装**（docs/15 で写真 + JP フォント同梱の `opengraph-image` を作る）。現状は og:title/description のみ。
 
 ## アーキテクチャの要点（REQUIREMENTS.md より）
 

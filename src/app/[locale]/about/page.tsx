@@ -7,6 +7,7 @@ import { Band } from '@/components/layout/Band';
 import { PageHero } from '@/components/layout/PageHero';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { LinkButton } from '@/components/ui/LinkButton';
+import { alternatesFor, openGraphFor, twitterFor } from '@/lib/seo/metadata';
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -16,7 +17,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) return {};
   const t = await getTranslations({ locale, namespace: 'About' });
-  return { title: t('title'), description: t('intro') };
+  return {
+    title: t('title'),
+    description: t('intro'),
+    alternates: alternatesFor(locale, '/about'),
+    openGraph: openGraphFor({ locale, path: '/about', title: t('title'), description: t('intro') }),
+    twitter: twitterFor({ title: t('title'), description: t('intro') }),
+  };
 }
 
 /**
