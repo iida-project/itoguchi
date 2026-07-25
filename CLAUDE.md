@@ -22,18 +22,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 > 上記の前提: いま管理パネルが無くて詰まる作業は無い（コンテンツは全件 `is_provisional` で掲載交渉が未了、docs/15 の投入は `seed.sql` + Supabase MCP で可能）。**第三者に近く入力してもらう予定ができたら、11・12 を前倒しする判断に変わる。**
 
-### docs/11（管理パネル: 認証・基盤）に着手する前に知っておくこと
+### 管理パネル（docs/11 完了・docs/12 に着手する前に知っておくこと）
 
-公開ページ（docs/05〜10・17〜20）とは**ルーティングもレンダリングも認証も別系統**になる。既存資産をそのまま延長できない点だけ先に挙げる。
+管理パネルの**認証・共通レイアウト・書き込み基盤は docs/11 で実装済み**。公開ページ（docs/05〜10・17〜20）とは**ルーティングもレンダリングも認証も別系統**。docs/12（CRUD）はこの基盤の上に乗せる。
 
-- **`/admin` は `[locale]` の外**（`src/app/admin/`）。現在ルートレイアウトは `src/app/[locale]/layout.tsx` の 1 つだけで、そこが `<html>` を持っている。`/admin` を追加するなら **`<html>` を持つレイアウトがもう 1 つ要る**（App Router のルートレイアウト規約）。管理 UI は日本語のみなので `NextIntlClientProvider` は付けない
-- **ミドルウェアの matcher が `/admin` にもマッチする**（現行は `'/((?!api|trpc|_next|_vercel|.*\\..*).*)'`）。このままだと next-intl が `/ja/admin` へリダイレクトしてしまうので、**matcher から `admin` を除外したうえで `/admin` の認証ガードを合成する**
-- **認証は Supabase Auth ではなくパスワード + httpOnly cookie**（Sayo's Journal のパターン移植。REQUIREMENTS §9）。したがって書き込みは **`SUPABASE_SERVICE_ROLE_KEY`**（`.env.example` に枠だけ用意済み・サーバー限定）で行い、RLS の「authenticated = 全操作」はサービスロールがバイパスする前提になる（docs/03 のメモと整合させること）
-- **公開ページ用の `createServerSupabaseClient()`（anon キー・cookie 不使用）を書き込みに使わない**。別クライアントを `src/lib/supabase/` に足す
-- cookie を読むので**自然に動的レンダリングになる**（`force-dynamic` は書かない）。`noindex` を付ける
+**実装済みの基盤（docs/11・再利用する）**:
+- **`/admin` は `[locale]` の外**（`src/app/admin/`）に 2 つ目の root layout（`src/app/admin/layout.tsx`・`<html lang="ja">`・noindex）を持つ。管理 UI は日本語のみなので `NextIntlClientProvider` は付けない。静的 `admin` は動的 `[locale]` より route 解決で優先されるので競合しない
+- **middleware は matcher を据え置き、内部で `/admin` を分岐**してガードする（`src/middleware.ts`）。`/admin` を先に処理して return するので next-intl は `/admin` を触らない（`/ja/admin` に化けない）。※ 旧メモの「matcher から admin を除外」は Todo「ミドルウェアの `/admin` ガード」と両立しないため不採用
+- **認証はパスワード + httpOnly cookie**（Sayo's Journal 移植・REQUIREMENTS §9）。`src/lib/admin/session.ts`（edge-safe・Web Crypto HMAC・`signSession`/`verifySession`/`verifyPassword`）と `src/lib/admin/auth.ts`（`server-only`・`isAuthenticated`/`requireAuth`/`setSessionCookie`/`clearSessionCookie`）。cookie は httpOnly/secure(本番)/sameSite=lax/**path=/admin**。env は `ADMIN_PASSWORD` / `ADMIN_SESSION_SECRET`
+- **書き込みは `createAdminSupabaseClient()`**（`src/lib/supabase/admin.ts`・service-role・`server-only`）。RLS をバイパスするので**必ず認証の内側から呼ぶ**。公開ページ用の `createServerSupabaseClient()`（anon）は書き込みに使わない
+- サイドナビの単一情報源は `src/lib/admin/nav.ts`（`adminNavItems`）。ナビは i18n 版でなく素の `next/link` + `next/navigation` の `usePathname`（`src/components/admin/AdminNav.tsx`）
+
+**docs/12（CRUD）で守ること**:
+- **更新系 Server Action は各アクション先頭で必ず `requireAuth()` を呼ぶ**。middleware と `(panel)` layout は「描画・遷移の楽観ガード」に過ぎず、Server Action の POST は自衛が必要。service-role 書き込みも必ずその内側
+- cookie を読むので**自然に動的レンダリングになる**（`force-dynamic` は書かない）。`/admin` は既に noindex
 - **フォームに docs/18 の 3 カラムを含める**: `crafts.name_latin` / `craft_translations.about_heading` / `story_heading`
-- **Storage の `images` バケットは docs/03 で作成済み**（public・URL 直アクセスで読む。listing のポリシーは advisor 対応で削除済み）。アップロード基盤を作ったら、`next/image` で表示するために **`next.config.ts` に `images.remotePatterns`（Supabase のホスト）を足す**必要がある（現状は未設定＝写真がまだ 1 枚も無いため）
+- **画像アップロード基盤は docs/11 で実装済み**（`src/lib/admin/storage.ts` の `uploadImage`/`deleteImage`・バケット `images`・public）。`next.config.ts` に Supabase ホストの `images.remotePatterns` 追加済み（`next/image` 表示用）。docs/12 は一覧・差し替え UI を作る
 - デザインはトークンと `Button` / `Badge` / `cn` などを流用してよいが、**`Band` / `PageHero` / `SectionHeading` / `Stat` は公開ページの型**なので管理パネルに持ち込まない（フォーム・テーブルは別の型を作る）
+- `(panel)/{crafts,articles,…}/page.tsx` は現在 `ComingSoon` の「準備中」プレースホルダ。docs/12 で本実装に置換する
 - スキーマを変えたら **`src/types/database.types.ts` を再生成**し、マイグレーションはローカルにも同名で置く
 
 ## チケット管理（docs/）
