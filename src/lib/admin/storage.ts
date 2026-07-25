@@ -53,3 +53,22 @@ export async function deleteImage(path: string): Promise<void> {
     throw new Error(`画像の削除に失敗しました: ${error.message}`);
   }
 }
+
+/** public URL から Storage 内のパスを取り出す（削除用）。バケット外の URL なら null。 */
+export function storagePathFromPublicUrl(url: string): string | null {
+  const marker = `/storage/v1/object/public/${BUCKET}/`;
+  const i = url.indexOf(marker);
+  return i === -1 ? null : url.slice(i + marker.length);
+}
+
+/** URL 指定で画像を best-effort 削除する（失敗しても投げない。行削除に付随する掃除用）。 */
+export async function cleanupImageByUrl(url: string | null | undefined): Promise<void> {
+  if (!url) return;
+  const path = storagePathFromPublicUrl(url);
+  if (!path) return;
+  try {
+    await deleteImage(path);
+  } catch {
+    // 掃除は best-effort。孤児画像は画像ライブラリから手動削除できる。
+  }
+}

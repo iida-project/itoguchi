@@ -251,6 +251,7 @@ export type Database = {
       }
       crafts: {
         Row: {
+          admin_note: string | null
           created_at: string
           hero_image_url: string | null
           id: string
@@ -262,6 +263,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          admin_note?: string | null
           created_at?: string
           hero_image_url?: string | null
           id?: string
@@ -273,6 +275,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          admin_note?: string | null
           created_at?: string
           hero_image_url?: string | null
           id?: string

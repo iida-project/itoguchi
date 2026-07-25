@@ -260,3 +260,70 @@ html[lang='en'] {
     scroll-behavior: auto !important;
   }
 }
+
+/* 管理パネルの Tiptap エディタ本文（docs/12）。
+   Preflight で消えた見出しサイズ・リストマーカーを編集領域内だけ復元する。 */
+.admin-editor-content {
+  min-height: 12rem;
+  outline: none;
+}
+.admin-editor-content > * + * {
+  margin-top: 0.6em;
+}
+.admin-editor-content h2 {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+.admin-editor-content h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+.admin-editor-content h4 {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.admin-editor-content ul {
+  list-style: disc;
+  padding-left: 1.5em;
+}
+.admin-editor-content ol {
+  list-style: decimal;
+  padding-left: 1.5em;
+}
+.admin-editor-content blockquote {
+  border-left: 3px solid var(--color-border-strong);
+  padding-left: 1em;
+  color: var(--color-text-muted);
+}
+.admin-editor-content a {
+  color: var(--color-accent-600);
+  text-decoration: underline;
+}
+.admin-editor-content code {
+  background: var(--color-bg-warm);
+  padding: 0.1em 0.3em;
+  border-radius: var(--radius-sm);
+}
+.admin-editor-content pre {
+  background: var(--color-text);
+  color: #fff;
+  padding: 0.8em;
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+}
+.admin-editor-content pre code {
+  background: transparent;
+  padding: 0;
+}
+.admin-editor-content hr {
+  border: none;
+  border-top: 1px solid var(--color-border-strong);
+}
+/* プレースホルダ相当: 空のときに薄く表示（任意） */
+.admin-editor-content p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--color-text-muted);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}

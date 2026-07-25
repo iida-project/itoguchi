@@ -11,10 +11,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### 着手順（2026-07-23 決定）
 
 ```
-17（完了） → 18（完了） → 19（完了） → 20（完了） → 11 → 12 → 13 → 14 → 15 → 16
+17（完了） → 18（完了） → 19（完了） → 20（完了） → 11（完了） → 12（完了） → 13 → 14 → 15 → 16
 ```
 
-**次に着手するのは docs/11（管理パネル: 認証・基盤）。** デザインリフレッシュ（17〜20）を管理パネルより先に終わらせた理由:
+**次に着手するのは docs/13（AI 英訳パイプライン）。** docs/11（認証・基盤）・docs/12（CRUD）は完了。デザインリフレッシュ（17〜20）を管理パネルより先に終わらせた理由:
 
 - **17 のタイプスケール変更は破壊的**（`display` 40→74px / `h2` 28→40px / `max-w-content` 1120→1280px）。17 より前に作った画面は作り直しになる。管理パネルはフォーム・テーブルで 10 画面以上あるため、変わると分かっているスケールの上に積まない
 - **18 は 12 より先**。18 で増える 3 カラム（`crafts.name_latin` / `craft_translations.about_heading` / `story_heading`）は管理パネルの入力欄に必要。後回しにすると 12 のフォームを二度作る
@@ -22,24 +22,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 > 上記の前提: いま管理パネルが無くて詰まる作業は無い（コンテンツは全件 `is_provisional` で掲載交渉が未了、docs/15 の投入は `seed.sql` + Supabase MCP で可能）。**第三者に近く入力してもらう予定ができたら、11・12 を前倒しする判断に変わる。**
 
-### 管理パネル（docs/11 完了・docs/12 に着手する前に知っておくこと）
+### 管理パネル（docs/11・12 完了・再利用する既存資産）
 
-管理パネルの**認証・共通レイアウト・書き込み基盤は docs/11 で実装済み**。公開ページ（docs/05〜10・17〜20）とは**ルーティングもレンダリングも認証も別系統**。docs/12（CRUD）はこの基盤の上に乗せる。
+管理パネルの**認証・共通レイアウト・書き込み基盤（docs/11）と 8 エンティティの CRUD（docs/12）は実装済み**。公開ページ（docs/05〜10・17〜20）とは**ルーティングもレンダリングも認証も別系統**。
 
-**実装済みの基盤（docs/11・再利用する）**:
+**基盤（docs/11・再利用する）**:
 - **`/admin` は `[locale]` の外**（`src/app/admin/`）に 2 つ目の root layout（`src/app/admin/layout.tsx`・`<html lang="ja">`・noindex）を持つ。管理 UI は日本語のみなので `NextIntlClientProvider` は付けない。静的 `admin` は動的 `[locale]` より route 解決で優先されるので競合しない
 - **middleware は matcher を据え置き、内部で `/admin` を分岐**してガードする（`src/middleware.ts`）。`/admin` を先に処理して return するので next-intl は `/admin` を触らない（`/ja/admin` に化けない）。※ 旧メモの「matcher から admin を除外」は Todo「ミドルウェアの `/admin` ガード」と両立しないため不採用
 - **認証はパスワード + httpOnly cookie**（Sayo's Journal 移植・REQUIREMENTS §9）。`src/lib/admin/session.ts`（edge-safe・Web Crypto HMAC・`signSession`/`verifySession`/`verifyPassword`）と `src/lib/admin/auth.ts`（`server-only`・`isAuthenticated`/`requireAuth`/`setSessionCookie`/`clearSessionCookie`）。cookie は httpOnly/secure(本番)/sameSite=lax/**path=/admin**。env は `ADMIN_PASSWORD` / `ADMIN_SESSION_SECRET`
 - **書き込みは `createAdminSupabaseClient()`**（`src/lib/supabase/admin.ts`・service-role・`server-only`）。RLS をバイパスするので**必ず認証の内側から呼ぶ**。公開ページ用の `createServerSupabaseClient()`（anon）は書き込みに使わない
 - サイドナビの単一情報源は `src/lib/admin/nav.ts`（`adminNavItems`）。ナビは i18n 版でなく素の `next/link` + `next/navigation` の `usePathname`（`src/components/admin/AdminNav.tsx`）
 
-**docs/12（CRUD）で守ること**:
-- **更新系 Server Action は各アクション先頭で必ず `requireAuth()` を呼ぶ**。middleware と `(panel)` layout は「描画・遷移の楽観ガード」に過ぎず、Server Action の POST は自衛が必要。service-role 書き込みも必ずその内側
-- cookie を読むので**自然に動的レンダリングになる**（`force-dynamic` は書かない）。`/admin` は既に noindex
-- **フォームに docs/18 の 3 カラムを含める**: `crafts.name_latin` / `craft_translations.about_heading` / `story_heading`
-- **画像アップロード基盤は docs/11 で実装済み**（`src/lib/admin/storage.ts` の `uploadImage`/`deleteImage`・バケット `images`・public）。`next.config.ts` に Supabase ホストの `images.remotePatterns` 追加済み（`next/image` 表示用）。docs/12 は一覧・差し替え UI を作る
-- デザインはトークンと `Button` / `Badge` / `cn` などを流用してよいが、**`Band` / `PageHero` / `SectionHeading` / `Stat` は公開ページの型**なので管理パネルに持ち込まない（フォーム・テーブルは別の型を作る）
-- `(panel)/{crafts,articles,…}/page.tsx` は現在 `ComingSoon` の「準備中」プレースホルダ。docs/12 で本実装に置換する
+**CRUD 基盤（docs/12・再利用する）**:
+- **管理の読み取りは `src/lib/admin/data/*`**（`createAdminSupabaseClient()`・publish フィルタ無しで **draft も ja/en 両方**取得）。公開層 `src/lib/data`（published のみ）とは別系統。list/edit の 2 種。
+- **共有 form プリミティブ `src/components/admin/form/`**: presentational（`Field`/`TextInput`/`TextArea`/`Select`/`Checkbox`・directive 無し）+ interactive（`SubmitButton`/`ImageField`/`TranslationTabs`/`RichTextField`・`'use client'`）。一覧は `AdminTable`/`AdminPageHeader`/`PublishBadges`（`src/components/admin/`）、削除は `DeleteButton`。
+- **各エンティティのルート**: `(panel)/<entity>/`（一覧）+ `new/`+`[id]/`（**編集は id=uuid**）+ `actions.ts`（`'use server'`）+ `<Entity>Form.tsx`（`'use client'`・`useActionState` + `FormState`）。
+- **検証/再検証**: `src/lib/admin/validate.ts`（dep-free・`FormState`/`str`/`bool`/`numOrNull`/`oneOf`/`isSlug` 等）/ `src/lib/admin/revalidate.ts`（`revalidatePublic()` = `revalidatePath('/[locale]','layout')`。保存後に必ず呼ぶ）。
+- **画像**: `src/lib/admin/image-field.ts` の `resolveImageField`（File→`uploadImage` / 削除 / 既存維持）。`next.config.ts` は `serverActions.bodySizeLimit:'10mb'`。
+- **Tiptap は記事本文だけ**（`RichTextField`）。公開側で HTML 化しているのは `article_translations.content` のみ。overview/history/description 等はプレーンテキスト表示なので `TextArea`（Tiptap を使うとタグが文字として出る）。保存時は `sanitizeArticleHtml` を通す。
+- **翻訳保存**: base 作成後に ja/en を `upsert(..., {onConflict:'<fk>,locale'})`。**必須テキスト（name/title）が空の locale 行は削除**。
+- **工程（craft_steps）は単一行アクション**（`addStep`/`updateStep`/`deleteStep`/`moveStep`。並び替えは `position` 入れ替え）。
+
+**共通の鉄則**:
+- **更新系 Server Action は各アクション先頭で必ず `requireAuth()`**。middleware/`(panel)` layout は楽観ガードに過ぎず、Server Action の POST は自衛が必要。service-role 書き込みも必ずその内側。
+- cookie を読むので**自然に動的レンダリング**（`force-dynamic` は書かない）。`/admin` は noindex。
+- デザインはトークンと `Button` / `Badge` / `cn` を流用してよいが、**`Band` / `PageHero` / `SectionHeading` / `Stat` は公開ページ用**なので管理パネルに持ち込まない。
+- **書き込み・画像・管理の読み取りには `.env.local` に `SUPABASE_SERVICE_ROLE_KEY` が必要**（未設定だと admin reader/action が throw する）。
 - スキーマを変えたら **`src/types/database.types.ts` を再生成**し、マイグレーションはローカルにも同名で置く
 
 ## チケット管理（docs/）
@@ -68,7 +76,7 @@ npm run lint    # ESLint
 - **Tailwind CSS は v3.4.17 に意図的にピン留め**（v4 ではない）。`tailwind.config.ts` + PostCSS 方式。v4 の CSS-first 記法（`@theme` 等）は使わない
 - **i18n**: next-intl v4 導入済み。**Supabase**: 専用プロジェクト（ref `cknlipxwpxrcbexrbjbd` / ap-northeast-1、sayo-blog とは分離）にスキーマ・RLS・Storage 構築済み。`@supabase/supabase-js` + `server-only` 導入済み
 - **`sanitize-html`** 導入済み（記事 HTML 本文のサニタイズ用。`src/lib/sanitize.ts`）
-- Gemini（英訳下訳）、Tiptap（管理パネル）、Vercel ホスティングは未導入（REQUIREMENTS.md §9、docs/11・13・16 で対応）
+- **Tiptap v3 導入済み**（`@tiptap/react` / `@tiptap/starter-kit` / `@tiptap/pm`・docs/12。記事本文エディタのみで使用）。Gemini（英訳下訳）、Vercel ホスティングは未導入（REQUIREMENTS.md §9、docs/13・16 で対応）
 - `.mcp.json` と `.env.local` は認証情報を含むため gitignore 済み。コミットしない（公開クライアント用の env は `.env.example` に記載）
 
 ## 実装済みの基盤（再利用する既存資産）

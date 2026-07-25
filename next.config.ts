@@ -13,6 +13,13 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  experimental: {
+    // 管理パネルの画像アップロード（Server Action の multipart）用に上限を引き上げる（docs/12）。
+    // デフォルトは 1MB で写真だと不足するため。FormData 全体（テキスト + バイナリ）の合計にかかる。
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
+  },
 };
 
 // デフォルトで ./src/i18n/request.ts を参照する
