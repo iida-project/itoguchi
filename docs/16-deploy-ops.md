@@ -12,7 +12,7 @@ Vercel へのデプロイと運用の仕組み。**交渉期間は noindex の�
 ## Todo
 
 - [x] `SITE_URL` を Vercel のドメインから解決できるようにする（`src/lib/seo/config.ts`）
-- [x] Cron keepalive（`src/app/api/cron/keepalive/route.ts` + `vercel.json`）
+- [x] Cron keepalive（`src/app/api/keepalive/route.ts` + `vercel.json`）
 - [x] `.env.example` に `CRON_SECRET` を追加、`NEXT_PUBLIC_SITE_URL` の扱いを更新
 - [x] 本公開切替チェックリストの**作成**（下記）
 - [x] エラー監視・ログの確認手段を決める → **Vercel の Runtime Logs / Observability で足りる**（外部サービスは入れない）
@@ -132,7 +132,7 @@ curl -s -o /dev/null -w '%{http_code} -> %{redirect_url}\n' $BASE/admin         
 | Supabase | 全公開ページ・`generateStaticParams`・`sitemap.ts`・OGP ルート | ビルド失敗。プロジェクトが一時停止していないか確認する |
 | Google Fonts | `src/app/fonts.ts`（next/font）と `src/lib/og/fonts.ts`（OGP の TTF サブセット） | ビルド失敗。OGP 側は**あえて throw する**（豆腐入りの画像を出荷しないため）。直列化 + 指数バックオフは実装済み |
 
-**keepalive（`/api/cron/keepalive`）を毎日 1 回叩いているのは、Supabase の無料プランが無活動で一時停止するのを防ぐため。** 停止すると公開ページが落ちるだけでなくビルドまで失敗する。Cron は UTC 3 時（JST 正午）に実行される。
+**keepalive（`/api/keepalive`）を毎日 1 回叩いているのは、Supabase の無料プランが 7 日間の無活動で一時停止するのを防ぐため。** 停止すると公開ページが落ちるだけでなくビルドまで失敗する。**200 を返すだけでは DB の活動にならない**ので、`crafts` に `head:true` / `count:'exact'` の軽量クエリを実際に投げている。Cron は UTC 3 時（JST 正午）に実行される。
 
 ### エラー監視・ログ
 
@@ -142,7 +142,7 @@ curl -s -o /dev/null -w '%{http_code} -> %{redirect_url}\n' $BASE/admin         
 vercel logs <deployment-url>     # CLI からも見られる
 ```
 
-見るポイント: `/admin` の 500（`ADMIN_SESSION_SECRET` 未設定）/ `/api/cron/keepalive` の 503（Supabase 到達不可）/ Server Action のエラー。
+見るポイント: `/admin` の 500（`ADMIN_SESSION_SECRET` 未設定）/ `/api/keepalive` の 500（`[keepalive]` で始まるログ。`CRON_SECRET` 未設定か Supabase 到達不可）/ Server Action のエラー。
 
 ### プレビュー保護
 

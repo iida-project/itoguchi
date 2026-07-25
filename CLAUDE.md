@@ -81,7 +81,7 @@ npm run lint    # ESLint
 - **Tailwind CSS は v3.4.17 に意図的にピン留め**（v4 ではない）。`tailwind.config.ts` + PostCSS 方式。v4 の CSS-first 記法（`@theme` 等）は使わない
 - **i18n**: next-intl v4 導入済み。**Supabase**: 専用プロジェクト（ref `cknlipxwpxrcbexrbjbd` / ap-northeast-1、sayo-blog とは分離）にスキーマ・RLS・Storage 構築済み。`@supabase/supabase-js` + `server-only` 導入済み
 - **`sanitize-html`** 導入済み（記事 HTML 本文のサニタイズ用。`src/lib/sanitize.ts`）
-- **Tiptap v3 導入済み**（`@tiptap/react` / `@tiptap/starter-kit` / `@tiptap/pm`・docs/12。記事本文エディタのみで使用）。**Gemini（英訳下訳）は SDK 無しの `fetch` で導入済み**（`src/lib/admin/translate/*`・docs/13・env `GEMINI_API_KEY`）。**Vercel はリポジトリ側の準備のみ完了**（`vercel.json` の Cron + `/api/cron/keepalive`・docs/16。プロジェクト作成と env 設定はダッシュボードで未実施）
+- **Tiptap v3 導入済み**（`@tiptap/react` / `@tiptap/starter-kit` / `@tiptap/pm`・docs/12。記事本文エディタのみで使用）。**Gemini（英訳下訳）は SDK 無しの `fetch` で導入済み**（`src/lib/admin/translate/*`・docs/13・env `GEMINI_API_KEY`）。**Vercel はリポジトリ側の準備のみ完了**（`vercel.json` の Cron + `/api/keepalive`〈Supabase 無料プランの 7 日スリープ防止。env `CRON_SECRET` で認証〉・docs/16。プロジェクト作成と env 設定はダッシュボードで未実施）
 - `.mcp.json` と `.env.local` は認証情報を含むため gitignore 済み。コミットしない（公開クライアント用の env は `.env.example` に記載）
 
 ## 実装済みの基盤（再利用する既存資産）
