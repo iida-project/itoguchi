@@ -14,7 +14,13 @@ import { TranslationTabs } from '@/components/admin/form/TranslationTabs';
 import { ImageField } from '@/components/admin/form/ImageField';
 import type { CraftEdit } from '@/lib/admin/data/crafts';
 
-export function CraftForm({ initial }: { initial?: CraftEdit }) {
+export function CraftForm({
+  initial,
+  initialTab,
+}: {
+  initial?: CraftEdit;
+  initialTab?: 'ja' | 'en';
+}) {
   const [state, action] = useActionState<FormState, FormData>(saveCraft, initialFormState);
   const base = initial?.base;
 
@@ -52,7 +58,7 @@ export function CraftForm({ initial }: { initial?: CraftEdit }) {
 
       <Checkbox label="仮情報（※確認中）" name="is_provisional" defaultChecked={base?.is_provisional ?? false} />
 
-      <TranslationTabs>
+      <TranslationTabs defaultTab={initialTab}>
         {(loc) => {
           const t = loc === 'ja' ? initial?.ja : initial?.en;
           return (

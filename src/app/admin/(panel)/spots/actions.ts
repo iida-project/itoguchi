@@ -4,6 +4,10 @@ import { redirect } from 'next/navigation';
 import { requireAuth } from '@/lib/admin/auth';
 import { createAdminSupabaseClient } from '@/lib/supabase/admin';
 import { revalidatePublic } from '@/lib/admin/revalidate';
+import { getSpot } from '@/lib/admin/data/spots';
+import { listGlossary } from '@/lib/admin/data/glossary';
+import { translatePlainFields } from '@/lib/admin/translate/translate';
+import { TranslationError } from '@/lib/admin/translate/gemini';
 import {
   bool,
   isUrl,
@@ -93,4 +97,42 @@ export async function deleteSpot(id: string): Promise<void> {
   if (error) throw new Error(`削除に失敗しました: ${error.message}`);
   revalidatePublic();
   redirect('/admin/spots');
+}
+
+/** 英訳下訳を生成し en 下書きとして保存（docs/13）。 */
+export async function generateSpotEn(id: string, _prev: FormState, _fd: FormData): Promise<FormState> {
+  await requireAuth();
+  const spot = await getSpot(id);
+  if (!spot) return { error: 'スポットが見つかりません。' };
+  if (!spot.ja || !spot.ja.name) return { error: '先に日本語を保存してください。' };
+  const ja = spot.ja;
+
+  let translated: Record<string, string>;
+  try {
+    const glossary = await listGlossary();
+    translated = await translatePlainFields(
+      { name: ja.name ?? '', description: ja.description ?? '' },
+      glossary,
+    );
+  } catch (e) {
+    if (e instanceof TranslationError) return { error: e.message };
+    return { error: `英訳生成に失敗しました: ${(e as Error).message}` };
+  }
+
+  const supabase = createAdminSupabaseClient();
+  const { error } = await supabase.from('spot_translations').upsert(
+    {
+      spot_id: id,
+      locale: 'en',
+      name: translated.name || ja.name,
+      description: translated.description ?? null,
+      is_published: spot.en?.is_published ?? false,
+      is_provisional: spot.en?.is_provisional ?? false,
+    },
+    { onConflict: 'spot_id,locale' },
+  );
+  if (error) return { error: `保存に失敗しました: ${error.message}` };
+
+  revalidatePublic();
+  redirect(`/admin/spots/${id}?gen=${Date.now()}`);
 }

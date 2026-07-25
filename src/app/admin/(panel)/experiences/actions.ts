@@ -4,6 +4,10 @@ import { redirect } from 'next/navigation';
 import { requireAuth } from '@/lib/admin/auth';
 import { createAdminSupabaseClient } from '@/lib/supabase/admin';
 import { revalidatePublic } from '@/lib/admin/revalidate';
+import { getExperience } from '@/lib/admin/data/experiences';
+import { listGlossary } from '@/lib/admin/data/glossary';
+import { translatePlainFields } from '@/lib/admin/translate/translate';
+import { TranslationError } from '@/lib/admin/translate/gemini';
 import {
   bool,
   oneOf,
@@ -91,4 +95,42 @@ export async function deleteExperience(id: string): Promise<void> {
   if (error) throw new Error(`削除に失敗しました: ${error.message}`);
   revalidatePublic();
   redirect('/admin/experiences');
+}
+
+/** 英訳下訳を生成し en 下書きとして保存（docs/13）。 */
+export async function generateExperienceEn(id: string, _prev: FormState, _fd: FormData): Promise<FormState> {
+  await requireAuth();
+  const experience = await getExperience(id);
+  if (!experience) return { error: '体験が見つかりません。' };
+  if (!experience.ja || !experience.ja.title) return { error: '先に日本語を保存してください。' };
+  const ja = experience.ja;
+
+  let translated: Record<string, string>;
+  try {
+    const glossary = await listGlossary();
+    translated = await translatePlainFields(
+      { title: ja.title ?? '', description: ja.description ?? '' },
+      glossary,
+    );
+  } catch (e) {
+    if (e instanceof TranslationError) return { error: e.message };
+    return { error: `英訳生成に失敗しました: ${(e as Error).message}` };
+  }
+
+  const supabase = createAdminSupabaseClient();
+  const { error } = await supabase.from('experience_translations').upsert(
+    {
+      experience_id: id,
+      locale: 'en',
+      title: translated.title || ja.title,
+      description: translated.description ?? null,
+      is_published: experience.en?.is_published ?? false,
+      is_provisional: experience.en?.is_provisional ?? false,
+    },
+    { onConflict: 'experience_id,locale' },
+  );
+  if (error) return { error: `保存に失敗しました: ${error.message}` };
+
+  revalidatePublic();
+  redirect(`/admin/experiences/${id}?gen=${Date.now()}`);
 }

@@ -16,7 +16,15 @@ import { RichTextField } from '@/components/admin/form/RichTextField';
 import type { ArticleEdit } from '@/lib/admin/data/articles';
 import type { Option } from '@/lib/admin/data/options';
 
-export function ArticleForm({ initial, craftOptions }: { initial?: ArticleEdit; craftOptions: Option[] }) {
+export function ArticleForm({
+  initial,
+  craftOptions,
+  initialTab,
+}: {
+  initial?: ArticleEdit;
+  craftOptions: Option[];
+  initialTab?: 'ja' | 'en';
+}) {
   const [state, action] = useActionState<FormState, FormData>(saveArticle, initialFormState);
   const base = initial?.base;
 
@@ -53,7 +61,7 @@ export function ArticleForm({ initial, craftOptions }: { initial?: ArticleEdit; 
         <Checkbox label="仮情報（※確認中）" name="is_provisional" defaultChecked={base?.is_provisional ?? false} />
       </div>
 
-      <TranslationTabs>
+      <TranslationTabs defaultTab={initialTab}>
         {(loc) => {
           const t = loc === 'ja' ? initial?.ja : initial?.en;
           return (

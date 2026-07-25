@@ -6,6 +6,10 @@ import { createAdminSupabaseClient } from '@/lib/supabase/admin';
 import { revalidatePublic } from '@/lib/admin/revalidate';
 import { resolveImageField } from '@/lib/admin/image-field';
 import { cleanupImageByUrl } from '@/lib/admin/storage';
+import { getCraft, type CraftStepTranslationRow } from '@/lib/admin/data/crafts';
+import { listGlossary } from '@/lib/admin/data/glossary';
+import { translatePlainFields } from '@/lib/admin/translate/translate';
+import { TranslationError } from '@/lib/admin/translate/gemini';
 import {
   bool,
   isSlug,
@@ -108,6 +112,57 @@ export async function deleteCraft(id: string): Promise<void> {
   await cleanupImageByUrl(row?.hero_image_url ?? null);
   revalidatePublic();
   redirect('/admin/crafts');
+}
+
+/** 英訳下訳を生成し en 下書きとして保存（docs/13）。成功で `?gen=` へ redirect。 */
+export async function generateCraftEn(id: string, _prev: FormState, _fd: FormData): Promise<FormState> {
+  await requireAuth();
+  const craft = await getCraft(id);
+  if (!craft) return { error: '工芸が見つかりません。' };
+  if (!craft.ja) return { error: '先に日本語を保存してください。' };
+  const ja = craft.ja;
+
+  let translated: Record<string, string>;
+  try {
+    const glossary = await listGlossary();
+    translated = await translatePlainFields(
+      {
+        name: ja.name ?? '',
+        tagline: ja.tagline ?? '',
+        overview: ja.overview ?? '',
+        history: ja.history ?? '',
+        about_heading: ja.about_heading ?? '',
+        story_heading: ja.story_heading ?? '',
+        hero_image_alt: ja.hero_image_alt ?? '',
+      },
+      glossary,
+    );
+  } catch (e) {
+    if (e instanceof TranslationError) return { error: e.message };
+    return { error: `英訳生成に失敗しました: ${(e as Error).message}` };
+  }
+
+  const supabase = createAdminSupabaseClient();
+  const { error } = await supabase.from('craft_translations').upsert(
+    {
+      craft_id: id,
+      locale: 'en',
+      name: translated.name || ja.name,
+      tagline: translated.tagline ?? null,
+      overview: translated.overview ?? null,
+      history: translated.history ?? null,
+      about_heading: translated.about_heading ?? null,
+      story_heading: translated.story_heading ?? null,
+      hero_image_alt: translated.hero_image_alt ?? null,
+      is_published: craft.en?.is_published ?? false,
+      is_provisional: craft.en?.is_provisional ?? false,
+    },
+    { onConflict: 'craft_id,locale' },
+  );
+  if (error) return { error: `保存に失敗しました: ${error.message}` };
+
+  revalidatePublic();
+  redirect(`/admin/crafts/${id}?gen=${Date.now()}`);
 }
 
 // ---- 工程（craft_steps）: 1 行ずつのアクション ----
@@ -224,6 +279,60 @@ export async function moveStep(stepId: string, direction: 'up' | 'down'): Promis
   await supabase.from('craft_steps').update({ position: other.position }).eq('id', step.id);
   await supabase.from('craft_steps').update({ position: step.position }).eq('id', other.id);
   revalidatePublic();
+}
+
+/** 工程の英訳下訳を生成し en 下書きとして保存（docs/13）。成功で craft 編集へ `?gen=` redirect。 */
+export async function generateStepEn(stepId: string, _prev: FormState, _fd: FormData): Promise<FormState> {
+  await requireAuth();
+  const supabase = createAdminSupabaseClient();
+
+  const { data, error: readErr } = await supabase
+    .from('craft_steps')
+    .select('id, craft_id, step_translations:craft_step_translations(*)')
+    .eq('id', stepId)
+    .maybeSingle();
+  if (readErr) return { error: `読み込みに失敗しました: ${readErr.message}` };
+  if (!data) return { error: '工程が見つかりません。' };
+
+  const step = data as unknown as {
+    id: string;
+    craft_id: string;
+    step_translations: CraftStepTranslationRow[];
+  };
+  const ja = step.step_translations.find((t) => t.locale === 'ja') ?? null;
+  const en = step.step_translations.find((t) => t.locale === 'en') ?? null;
+  if (!ja || (!ja.title && !ja.description && !ja.image_alt)) {
+    return { error: '先に日本語を保存してください。' };
+  }
+
+  let translated: Record<string, string>;
+  try {
+    const glossary = await listGlossary();
+    translated = await translatePlainFields(
+      { title: ja.title ?? '', description: ja.description ?? '', image_alt: ja.image_alt ?? '' },
+      glossary,
+    );
+  } catch (e) {
+    if (e instanceof TranslationError) return { error: e.message };
+    return { error: `英訳生成に失敗しました: ${(e as Error).message}` };
+  }
+
+  const { error } = await supabase.from('craft_step_translations').upsert(
+    {
+      craft_step_id: stepId,
+      locale: 'en',
+      title: translated.title ?? null,
+      description: translated.description ?? null,
+      image_alt: translated.image_alt ?? null,
+      is_published: en?.is_published ?? false,
+      is_provisional: en?.is_provisional ?? false,
+    },
+    { onConflict: 'craft_step_id,locale' },
+  );
+  if (error) return { error: `保存に失敗しました: ${error.message}` };
+
+  revalidatePublic();
+  redirect(`/admin/crafts/${step.craft_id}?gen=${Date.now()}`);
 }
 
 function baseError(error: { code?: string; message: string }): FormState {

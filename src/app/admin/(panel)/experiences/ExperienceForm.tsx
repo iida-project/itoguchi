@@ -24,10 +24,12 @@ export function ExperienceForm({
   initial,
   craftOptions,
   groupOptions,
+  initialTab,
 }: {
   initial?: ExperienceEdit;
   craftOptions: Option[];
   groupOptions: Option[];
+  initialTab?: 'ja' | 'en';
 }) {
   const [state, action] = useActionState<FormState, FormData>(saveExperience, initialFormState);
   const base = initial?.base;
@@ -89,7 +91,7 @@ export function ExperienceForm({
 
       <Checkbox label="仮情報（※確認中）" name="is_provisional" defaultChecked={base?.is_provisional ?? false} />
 
-      <TranslationTabs>
+      <TranslationTabs defaultTab={initialTab}>
         {(loc) => {
           const t = loc === 'ja' ? initial?.ja : initial?.en;
           return (

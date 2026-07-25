@@ -11,10 +11,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### 着手順（2026-07-23 決定）
 
 ```
-17（完了） → 18（完了） → 19（完了） → 20（完了） → 11（完了） → 12（完了） → 13 → 14 → 15 → 16
+17（完了） → 18（完了） → 19（完了） → 20（完了） → 11（完了） → 12（完了） → 13（完了） → 14 → 15 → 16
 ```
 
-**次に着手するのは docs/13（AI 英訳パイプライン）。** docs/11（認証・基盤）・docs/12（CRUD）は完了。デザインリフレッシュ（17〜20）を管理パネルより先に終わらせた理由:
+**次に着手するのは docs/14（SEO / AIO）。** docs/11（認証・基盤）・docs/12（CRUD）・docs/13（AI 英訳）は完了。デザインリフレッシュ（17〜20）を管理パネルより先に終わらせた理由:
 
 - **17 のタイプスケール変更は破壊的**（`display` 40→74px / `h2` 28→40px / `max-w-content` 1120→1280px）。17 より前に作った画面は作り直しになる。管理パネルはフォーム・テーブルで 10 画面以上あるため、変わると分かっているスケールの上に積まない
 - **18 は 12 より先**。18 で増える 3 カラム（`crafts.name_latin` / `craft_translations.about_heading` / `story_heading`）は管理パネルの入力欄に必要。後回しにすると 12 のフォームを二度作る
@@ -42,6 +42,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Tiptap は記事本文だけ**（`RichTextField`）。公開側で HTML 化しているのは `article_translations.content` のみ。overview/history/description 等はプレーンテキスト表示なので `TextArea`（Tiptap を使うとタグが文字として出る）。保存時は `sanitizeArticleHtml` を通す。
 - **翻訳保存**: base 作成後に ja/en を `upsert(..., {onConflict:'<fk>,locale'})`。**必須テキスト（name/title）が空の locale 行は削除**。
 - **工程（craft_steps）は単一行アクション**（`addStep`/`updateStep`/`deleteStep`/`moveStep`。並び替えは `position` 入れ替え）。
+
+**AI 英訳（docs/13・再利用する）**:
+- **Gemini は `src/lib/admin/translate/*`**（SDK 無し `fetch`・`gemini-2.5-flash`・`x-goog-api-key`・JSON `responseSchema`・リトライ/タイムアウト・`TranslationError`）。`translatePlainFields`（scalar）/ `translateHtml`（記事本文・呼び出し側で `sanitizeArticleHtml`）。glossary は systemInstruction に注入。
+- **各編集ページの `GenerateEnButton`** → `generate<Entity>En(id)` が DB の ja を訳し en を upsert（`is_published` 据え置き）→ **`redirect('?gen='+Date.now())`**。編集ページは `searchParams.gen` を `<Form key>` に使い、生成時だけ remount して en 下書きを表示（Save は remount しない）。`TranslationTabs` の `defaultTab` で生成後は en タブ。**save-first 前提**。env `GEMINI_API_KEY`。
 
 **共通の鉄則**:
 - **更新系 Server Action は各アクション先頭で必ず `requireAuth()`**。middleware/`(panel)` layout は楽観ガードに過ぎず、Server Action の POST は自衛が必要。service-role 書き込みも必ずその内側。
@@ -76,7 +80,7 @@ npm run lint    # ESLint
 - **Tailwind CSS は v3.4.17 に意図的にピン留め**（v4 ではない）。`tailwind.config.ts` + PostCSS 方式。v4 の CSS-first 記法（`@theme` 等）は使わない
 - **i18n**: next-intl v4 導入済み。**Supabase**: 専用プロジェクト（ref `cknlipxwpxrcbexrbjbd` / ap-northeast-1、sayo-blog とは分離）にスキーマ・RLS・Storage 構築済み。`@supabase/supabase-js` + `server-only` 導入済み
 - **`sanitize-html`** 導入済み（記事 HTML 本文のサニタイズ用。`src/lib/sanitize.ts`）
-- **Tiptap v3 導入済み**（`@tiptap/react` / `@tiptap/starter-kit` / `@tiptap/pm`・docs/12。記事本文エディタのみで使用）。Gemini（英訳下訳）、Vercel ホスティングは未導入（REQUIREMENTS.md §9、docs/13・16 で対応）
+- **Tiptap v3 導入済み**（`@tiptap/react` / `@tiptap/starter-kit` / `@tiptap/pm`・docs/12。記事本文エディタのみで使用）。**Gemini（英訳下訳）は SDK 無しの `fetch` で導入済み**（`src/lib/admin/translate/*`・docs/13・env `GEMINI_API_KEY`）。Vercel ホスティングは未導入（docs/16 で対応）
 - `.mcp.json` と `.env.local` は認証情報を含むため gitignore 済み。コミットしない（公開クライアント用の env は `.env.example` に記載）
 
 ## 実装済みの基盤（再利用する既存資産）

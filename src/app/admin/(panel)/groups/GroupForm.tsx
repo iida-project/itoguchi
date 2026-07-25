@@ -12,7 +12,7 @@ import { FormStatus } from '@/components/admin/form/FormStatus';
 import { TranslationTabs } from '@/components/admin/form/TranslationTabs';
 import type { GroupEdit } from '@/lib/admin/data/groups';
 
-export function GroupForm({ initial }: { initial?: GroupEdit }) {
+export function GroupForm({ initial, initialTab }: { initial?: GroupEdit; initialTab?: 'ja' | 'en' }) {
   const [state, action] = useActionState<FormState, FormData>(saveGroup, initialFormState);
   const base = initial?.base;
 
@@ -49,7 +49,7 @@ export function GroupForm({ initial }: { initial?: GroupEdit }) {
 
       <Checkbox label="仮情報（※確認中）" name="is_provisional" defaultChecked={base?.is_provisional ?? false} />
 
-      <TranslationTabs>
+      <TranslationTabs defaultTab={initialTab}>
         {(loc) => {
           const t = loc === 'ja' ? initial?.ja : initial?.en;
           return (

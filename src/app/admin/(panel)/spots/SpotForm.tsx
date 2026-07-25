@@ -16,7 +16,15 @@ import type { Option } from '@/lib/admin/data/options';
 
 const TYPE_LABELS: Record<string, string> = { shop: '店舗', museum: '資料館・館', other: 'その他' };
 
-export function SpotForm({ initial, craftOptions }: { initial?: SpotEdit; craftOptions: Option[] }) {
+export function SpotForm({
+  initial,
+  craftOptions,
+  initialTab,
+}: {
+  initial?: SpotEdit;
+  craftOptions: Option[];
+  initialTab?: 'ja' | 'en';
+}) {
   const [state, action] = useActionState<FormState, FormData>(saveSpot, initialFormState);
   const base = initial?.base;
 
@@ -68,7 +76,7 @@ export function SpotForm({ initial, craftOptions }: { initial?: SpotEdit; craftO
 
       <Checkbox label="仮情報（※確認中）" name="is_provisional" defaultChecked={base?.is_provisional ?? false} />
 
-      <TranslationTabs>
+      <TranslationTabs defaultTab={initialTab}>
         {(loc) => {
           const t = loc === 'ja' ? initial?.ja : initial?.en;
           return (

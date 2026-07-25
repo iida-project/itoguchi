@@ -12,8 +12,14 @@ type TabLocale = 'ja' | 'en';
  * （条件マウントにすると隠れたタブの入力が送信されず、翻訳の片方が保存されない）。
  * 呼び出し側は `children` を locale を受け取る関数にして、各ロケールのフィールドを組み立てる。
  */
-export function TranslationTabs({ children }: { children: (locale: TabLocale) => ReactNode }) {
-  const [active, setActive] = useState<TabLocale>('ja');
+export function TranslationTabs({
+  children,
+  defaultTab = 'ja',
+}: {
+  children: (locale: TabLocale) => ReactNode;
+  defaultTab?: TabLocale;
+}) {
+  const [active, setActive] = useState<TabLocale>(defaultTab);
   const locales: TabLocale[] = ['ja', 'en'];
 
   return (

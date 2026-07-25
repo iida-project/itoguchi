@@ -18,18 +18,31 @@
 
 ## Todo
 
-- [ ] Gemini クライアント（環境変数・タイムアウト・リトライ）
-- [ ] glossary 注入プロンプトの設計（固有名詞はローマ字 + 補足方式）
-- [ ] 「英訳生成」Server Action（対象エンティティ汎用）
-- [ ] 生成結果の en 下書き保存（既存 en 訳がある場合は上書き確認）
-- [ ] HTML 本文の構造保持翻訳
-- [ ] 編集画面への「英訳生成」ボタン設置と生成中 UI
-- [ ] エラーハンドリング(レート制限・タイムアウト)とユーザーへの表示
+- [x] Gemini クライアント（環境変数・タイムアウト・リトライ）
+- [x] glossary 注入プロンプトの設計（固有名詞はローマ字 + 補足方式）
+- [x] 「英訳生成」Server Action（対象エンティティ汎用）
+- [x] 生成結果の en 下書き保存（既存 en 訳がある場合は上書き確認）
+- [x] HTML 本文の構造保持翻訳
+- [x] 編集画面への「英訳生成」ボタン設置と生成中 UI
+- [x] エラーハンドリング(レート制限・タイムアウト)とユーザーへの表示
 
 ## 完了条件
 
-ja で入稿 → ボタン 1 つで en 下訳が生成され、レビュー後にフラグ ON で EN ページに反映される。
+ja で入稿 → ボタン 1 つで en 下訳が生成され、レビュー後にフラグ ON で EN ページに反映される。→ 実装済み（型チェック・lint・本番ビルド検証済み）。**実機確認には `.env.local` に `GEMINI_API_KEY`（Google AI Studio）と `SUPABASE_SERVICE_ROLE_KEY` が必要**。
 
 ## メモ
 
-（実装中の気づきを追記）
+### 実装した構成
+- **Gemini は SDK 無しの `fetch`**（`src/lib/admin/translate/gemini.ts`）。`gemini-2.5-flash:generateContent`・`x-goog-api-key` ヘッダ・`responseSchema`（JSON モード・型は大文字）・30s AbortController・429/5xx 指数バックオフ・finishReason/blockReason ガード。`TranslationError` を投げ、ja データには触れない。
+- `glossary-prompt.ts`（source に出現する対訳だけ systemInstruction に注入）/ `translate.ts`（`translatePlainFields` = scalar を 1 コール / `translateHtml` = 記事本文の構造保持翻訳・返り値は呼び出し側で `sanitizeArticleHtml`）。
+- **生成フロー**: 各編集ページヘッダの `GenerateEnButton`（`useActionState`）→ `generate<Entity>En(id)` が **DB の ja** を読む（未保存なら「先に日本語を保存」）→ Gemini → **en 行を upsert（`is_published` は既存維持・新規 false）** → `revalidatePublic()` → 成功で **`redirect('/admin/<entity>/<id>?gen='+Date.now())`**。
+- **`?gen` remount**: 編集ページは `searchParams.gen` を `<Form key>` に使う。**Save は URL 不変で remount せず**（成功バナー・タブ位置を維持）、generate だけ `?gen` が変わり remount して en 下書きが `defaultValue` で出る。`TranslationTabs` に `defaultTab` を足し、生成後は en タブを表示。
+- 対象: crafts / articles（本文 HTML 込み）/ groups / experiences / events / spots + **craft_steps は各ステップに個別ボタン**（`StepCard`）。
+- 既存 en があれば `GenerateEnButton` が生成前に上書き確認。
+
+### 判明した重要事項・申し送り
+- **save-first 前提**: generate は DB 保存済みの ja を訳す。未保存の編集は remount で失われるため、ボタン脇に「日本語を保存してから生成」を明示。
+- **各編集ページに `export const maxDuration = 60`**（Gemini 呼び出しの実行時間確保。Vercel デプロイ = docs/16 用）。
+- env `GEMINI_API_KEY`（サーバー限定）を `.env.example` に追加。未設定だとボタンがエラーを返す。
+- ESLint に `argsIgnorePattern:'^_'` を追加（`useActionState` の未使用 `_prev`/`_fd` 用）。
+- **未実施**: 実機の翻訳確認（GEMINI_API_KEY 未設定のため）。

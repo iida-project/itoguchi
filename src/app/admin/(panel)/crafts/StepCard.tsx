@@ -1,7 +1,8 @@
 'use client';
 
 import { useActionState } from 'react';
-import { updateStep, moveStep, deleteStep } from './actions';
+import { updateStep, moveStep, deleteStep, generateStepEn } from './actions';
+import { GenerateEnButton } from '@/components/admin/GenerateEnButton';
 import { initialFormState, type FormState } from '@/lib/admin/validate';
 import { Field } from '@/components/admin/form/Field';
 import { TextInput } from '@/components/admin/form/TextInput';
@@ -22,11 +23,13 @@ export function StepCard({
   index,
   isFirst,
   isLast,
+  initialTab,
 }: {
   step: CraftStepEdit;
   index: number;
   isFirst: boolean;
   isLast: boolean;
+  initialTab?: 'ja' | 'en';
 }) {
   const [state, action] = useActionState<FormState, FormData>(updateStep, initialFormState);
 
@@ -45,6 +48,11 @@ export function StepCard({
               ↓
             </button>
           </form>
+          <GenerateEnButton
+            action={generateStepEn.bind(null, step.base.id)}
+            hasEn={Boolean(step.en)}
+            showHint={false}
+          />
           <DeleteButton
             action={deleteStep.bind(null, step.base.id)}
             confirmMessage="この工程を削除します。よろしいですか？"
@@ -59,7 +67,7 @@ export function StepCard({
         <ImageField name="image" label="工程画像" currentUrl={step.base.image_url} />
         <Checkbox label="仮情報（※確認中）" name="is_provisional" defaultChecked={step.base.is_provisional} />
 
-        <TranslationTabs>
+        <TranslationTabs defaultTab={initialTab}>
           {(loc) => {
             const t = loc === 'ja' ? step.ja : step.en;
             return (

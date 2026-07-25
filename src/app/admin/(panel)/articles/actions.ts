@@ -6,6 +6,10 @@ import { createAdminSupabaseClient } from '@/lib/supabase/admin';
 import { revalidatePublic } from '@/lib/admin/revalidate';
 import { resolveImageField } from '@/lib/admin/image-field';
 import { cleanupImageByUrl } from '@/lib/admin/storage';
+import { getArticle } from '@/lib/admin/data/articles';
+import { listGlossary } from '@/lib/admin/data/glossary';
+import { translatePlainFields, translateHtml } from '@/lib/admin/translate/translate';
+import { TranslationError } from '@/lib/admin/translate/gemini';
 import { sanitizeArticleHtml } from '@/lib/sanitize';
 import {
   bool,
@@ -110,6 +114,49 @@ export async function deleteArticle(id: string): Promise<void> {
   await cleanupImageByUrl(row?.thumbnail ?? null);
   revalidatePublic();
   redirect('/admin/articles');
+}
+
+/** 英訳下訳を生成し en 下書きとして保存（docs/13）。本文 HTML は構造保持翻訳 + サニタイズ。 */
+export async function generateArticleEn(id: string, _prev: FormState, _fd: FormData): Promise<FormState> {
+  await requireAuth();
+  const article = await getArticle(id);
+  if (!article) return { error: '記事が見つかりません。' };
+  if (!article.ja) return { error: '先に日本語を保存してください。' };
+  const ja = article.ja;
+
+  let scalar: Record<string, string>;
+  let content: string;
+  try {
+    const glossary = await listGlossary();
+    scalar = await translatePlainFields(
+      { title: ja.title ?? '', excerpt: ja.excerpt ?? '', thumbnail_alt: ja.thumbnail_alt ?? '' },
+      glossary,
+    );
+    const rawHtml = await translateHtml(ja.content ?? '', glossary);
+    content = rawHtml ? sanitizeArticleHtml(rawHtml) : '';
+  } catch (e) {
+    if (e instanceof TranslationError) return { error: e.message };
+    return { error: `英訳生成に失敗しました: ${(e as Error).message}` };
+  }
+
+  const supabase = createAdminSupabaseClient();
+  const { error } = await supabase.from('article_translations').upsert(
+    {
+      article_id: id,
+      locale: 'en',
+      title: scalar.title || ja.title,
+      excerpt: scalar.excerpt ?? null,
+      thumbnail_alt: scalar.thumbnail_alt ?? null,
+      content: content || null,
+      is_published: article.en?.is_published ?? false,
+      is_provisional: article.en?.is_provisional ?? false,
+    },
+    { onConflict: 'article_id,locale' },
+  );
+  if (error) return { error: `保存に失敗しました: ${error.message}` };
+
+  revalidatePublic();
+  redirect(`/admin/articles/${id}?gen=${Date.now()}`);
 }
 
 function baseError(error: { code?: string; message: string }): FormState {
